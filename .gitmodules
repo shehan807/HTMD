@@ -1,0 +1,6 @@
+[submodule "force_field/OPLS/XML_REFORMAT"]
+	path = force_field/OPLS/XML_REFORMAT
+	url = git@github.com:shehan807/XML_REFORMAT.git
+[submodule "force_field/SAPT/SAPT_force_field_OpenMM"]
+	path = force_field/SAPT/SAPT_force_field_OpenMM
+	url = git@github.com:jmcdaniel43/SAPT_force_field_OpenMM.git
