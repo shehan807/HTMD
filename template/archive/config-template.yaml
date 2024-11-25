@@ -1,0 +1,9 @@
+# config.yaml
+INTGRTR:      "{integrator}" # DrudeLangevin (SAPT-FF) or Langevin (OPLS)
+TEMP:         {temperature} # int, K
+RES_FILE:     "{RESIDUE_FILE}.xml" 
+FF_FILE:      "{FF_FILE}.xml"
+TPLGY_FILE:   "{TOPOLOGY_FILE}.pdb"
+FREQ:         50 # int, output trj frequency in ps
+DEVICE:       "CUDA" # CUDA or CPU
+OUTPUT_DIR:   "simulation_output"

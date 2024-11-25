@@ -1,0 +1,19 @@
+mixtures:
+  - name: "<MIXTURE_NAME_1>"
+    component1: ["<PRIMARY_COMPONENT1>", "<PRIMARY_COMPONENT2>"]  # For ionic liquid cation/anion pairs
+    component2: null  # No secondary component for neat ionic liquids
+    concentrations: [1.0]  # 100% concentration for pure ionic liquids
+    temperatures: [300, 320, 350]  # List of temperatures for this mixture
+
+  - name: "<MIXTURE_NAME_2>"
+    component1: "<PRIMARY_COMPONENT>"  # Single primary component (e.g., water)
+    component2: ["<SECONDARY_COMPONENT1>", "<SECONDARY_COMPONENT2>"]  # Secondary component pair
+    concentrations: [0.05, 0.10, 0.15, 0.20]  # Variable (e.g., water) concentration for binary mixtures
+    temperatures: [300, 325]  # List of temperatures for this mixture
+
+  - name: "<MIXTURE_NAME_3>"
+    component1: ["<PRIMARY_COMPONENT1>", "<PRIMARY_COMPONENT2>"]
+    component2: "<SECONDARY_COMPONENT>"
+    concentrations: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    temperatures: [280, 300, 320]  # Customize as needed for each mixture
+

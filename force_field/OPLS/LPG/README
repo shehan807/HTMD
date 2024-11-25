@@ -1,0 +1,44 @@
+1. If using Docker (need to install locally), run following commands in this directory:
+```bash
+docker build -t your_image_name .
+docker run -it your_image_name
+```
+2. If using Apptainer (for PACE clusters), use LPG.def in this directory via:
+
+(1) Start an interactive job:
+$ salloc -A<account> -qembers -N1 --ntasks-per-node=4 -t2:00:00
+
+(2) Navigate to the directory where you installed Boss and set the path for BOSSdir. I also found that I needed to add relevant boss directories to my PATH - setting BOSSdir was not sufficient to run the tests successfully. Below, you can see examples of my commands (note that they are overkill and it's not necessary to add all of these to your PATH):
+
+export BOSSdir=/storage/home/hcodaman1/rlombardi6/boss
+
+export PATH=$PATH:/storage/home/hcodaman1/rlombardi6/boss:/storage/home/hcodaman1/rlombardi6/boss/scripts:/storage/home/hcodaman1/rlombardi6/boss/molecules/small:/storage/home/hcodaman1/rlombardi6/boss/molecules/drugs
+
+If you need to install BOSS:
+
+```bash
+wget ftp://omega.chem.yale.edu/tmp/boss0824.tar.gz
+gzip -d boss0824.tar.gz
+tar xovf boss0824.tar
+```
+
+(3) Build the container
+$ apptainer build <filename>.sif <filename>.def
+
+This process takes about 5 minutes. As long as things continue running, they are running well. If you get a red FATAL, let me know as that means your build has failed.
+
+(4) Start your container
+$ apptainer shell <filename>.sif
+You will know your container has started when your prompt changes from $ to Apptainer>
+
+Wahoo! You've successfully started your container!
+
+You should be able to run boss directly (as long as you've set BOSSdir and added relevant directories to the PATH).
+
+To run ligpargen, you need to activate conda and then activate the conda environment:
+Apptainer> . /opt/conda/bin/activate
+Apptainer> conda activate py37
+
+To exit the container, you can just type `exit`.
+
+
