@@ -152,13 +152,43 @@ def create_topology(molecules, num_molecules, target_density=800, system_dir = "
     topology.to_file(system_file_path)
     return system_file_path
 
-def create_job():
+def create_job(system_pdb_path, temp, merged_xml, job_dir, template_dir, slurm_job_name):
     """
-    Copy necessary job scripts from /template directory to 
-    current directory.
-    TO-DO: Eventually, this should all be replaced by jobflow libraries. 
+    Creates job-specific SLURM scripts and updates parameters.
     """
-    job_name =  
+    # Paths to the templates
+    slurm_template = os.path.join(template_dir, "run.slurm")
+    wrapper_template = os.path.join(template_dir, "slurm_wrapper.sh")
+
+    # Paths to the job-specific scripts
+    job_slurm = os.path.join(job_dir, "run.slurm")
+    job_wrapper = os.path.join(job_dir, "slurm_wrapper.sh")
+
+    # Create the job directory if it doesn't exist
+    os.makedirs(job_dir, exist_ok=True)
+
+    # Copy the wrapper script unchanged
+    shutil.copy(wrapper_template, job_wrapper)
+
+    # Customize the SLURM script
+    with open(slurm_template, "r") as f:
+        slurm_content = f.read()
+
+    # Replace placeholders in the SLURM script
+    slurm_content = slurm_content.replace("######", slurm_job_name)
+    slurm_content = slurm_content.replace("###TEMP###", str(temp))
+    slurm_content = slurm_content.replace("###RES_FILE###", merged_xml.replace(".xml", "_residues.xml"))
+    slurm_content = slurm_content.replace("###PDB_FILE###", system_pdb_path)
+    slurm_content = slurm_content.replace("###FF_FILE###", merged_xml)
+
+    # Write the updated SLURM script to the job directory
+    with open(job_slurm, "w") as f:
+        f.write(slurm_content)
+
+    print(f"Created SLURM script: {job_slurm}")
+    print(f"Created wrapper script: {job_wrapper}")
+
+    return job_slurm, job_wrapper
 
 def main():
     """
