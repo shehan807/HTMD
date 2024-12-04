@@ -1,10 +1,10 @@
 #!/bin/bash
 
 export ITER=1
-export TEMP=###
-export RES_FILE = ### 
-export PDB_FILE = ### 
-export FF_FILE  = ### 
+export TEMP=###TEMP###
+export RES_FILE=###RES_FILE###
+export PDB_FILE=###PDB_FILE###
+export FF_FILE=###FF_FILE###
 
 jobid_old=$(sbatch --parsable run.slurm --export=ITER)
 echo "run.slurm #${ITER} submitted"

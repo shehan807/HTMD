@@ -12,6 +12,7 @@ import yaml
 import subprocess
 import shutil 
 import mdtraj 
+from tabulate import tabulate
 
 from openff.toolkit import ForceField, Molecule, Topology
 from openff.units import unit
@@ -44,8 +45,8 @@ def parser():
         "-s",
         "--sif_file",
         type=str,
-        default="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/MD_Workflow/force_field/OPLS/ligpargen-image/LPG.sif",
-        help="Path to the .sif file for LigParGen (default: /storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/MD_Workflow/force_field/OPLS/ligpargen-image/LPG.sif)"
+        default="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/ligpargen-image/LPG.sif",
+        help="Path to the .sif file for LigParGen (default: /storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/ligpargen-image/LPG.sif)"
     )
 
     args = parser.parse_args()
@@ -75,7 +76,7 @@ def run_ligpargen(molecule, charge, smiles, sif_file):
     shutil.rmtree(mol_dir)
     return xml_file, pdb_file
 
-def merge_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/MD_Workflow/force_field/OPLS/XML_REFORMAT"):
+def merge_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/XML_REFORMAT"):
     cmd = f"python {os.path.join(script_path,'LPG_reformat.py')} --xml_files {' '.join(xml_files)} --output {output_dir}; ls"
     subprocess.run(cmd, shell=True)
     base_names = [
@@ -152,7 +153,7 @@ def create_topology(molecules, num_molecules, target_density=800, system_dir = "
     topology.to_file(system_file_path)
     return system_file_path
 
-def create_job(system_pdb_path, temp, merged_xml, job_dir, template_dir, slurm_job_name):
+def create_job(system_pdb_path, temp, merged_xml, job_dir, slurm_job_name, template_dir="/storage/coda1/p-jmcdaniel43/0/sparmar32/scripts/HTMD/jobs/templates"):
     """
     Creates job-specific SLURM scripts and updates parameters.
     """
@@ -167,34 +168,64 @@ def create_job(system_pdb_path, temp, merged_xml, job_dir, template_dir, slurm_j
     # Create the job directory if it doesn't exist
     os.makedirs(job_dir, exist_ok=True)
 
-    # Copy the wrapper script unchanged
+    # Copy the slurm/wrapper script unchanged
+    shutil.copy(slurm_template, job_slurm)
     shutil.copy(wrapper_template, job_wrapper)
+    
 
-    # Customize the SLURM script
+    # Customize the SLURM/wrapper script
     with open(slurm_template, "r") as f:
         slurm_content = f.read()
-
     # Replace placeholders in the SLURM script
-    slurm_content = slurm_content.replace("######", slurm_job_name)
-    slurm_content = slurm_content.replace("###TEMP###", str(temp))
-    slurm_content = slurm_content.replace("###RES_FILE###", merged_xml.replace(".xml", "_residues.xml"))
-    slurm_content = slurm_content.replace("###PDB_FILE###", system_pdb_path)
-    slurm_content = slurm_content.replace("###FF_FILE###", merged_xml)
-
+    slurm_content = slurm_content.replace("###JOB_NAME###", slurm_job_name)
     # Write the updated SLURM script to the job directory
     with open(job_slurm, "w") as f:
         f.write(slurm_content)
+    
+    with open(wrapper_template, "r") as f:
+        wrapper_content = f.read()
+    # Replace placeholders in the SLURM script
+    wrapper_content = wrapper_content.replace("###TEMP###", str(temp))
+    wrapper_content = wrapper_content.replace("###RES_FILE###", merged_xml.replace(".xml", "_residues.xml"))
+    wrapper_content = wrapper_content.replace("###PDB_FILE###", system_pdb_path)
+    wrapper_content = wrapper_content.replace("###FF_FILE###", merged_xml)
+    # Write the updated SLURM script to the job directory
+    with open(job_wrapper, "w") as f:
+        f.write(wrapper_content)
 
     print(f"Created SLURM script: {job_slurm}")
     print(f"Created wrapper script: {job_wrapper}")
 
     return job_slurm, job_wrapper
 
+def print_summary(jobdir_list, jobdir_status):
+    """
+    Prints a formatted summary of job directories with path, status, and metadata.
+    """
+    # Prepare data for the table
+    summary_data = []
+    for i, path in enumerate(jobdir_list):
+        # Extract metadata from the path
+        name, conc, temp = path.split(os.sep)[-3:]
+        summary_data.append({
+            "Job#": i,
+            "Name": name,
+            "Concentration": conc,
+            "Temperature": temp,
+            "Status (ns)": jobdir_status[i]
+        })
+
+    # Print the summary table
+    print(tabulate(summary_data, headers="keys", tablefmt="grid"))
+
+
 def main():
     """
     """
     # Parse command-line arguments
     molecule_map, conditions, sif_file = parser()
+    jobdir_list = []
+    jobdir_status = []
     for mixture in conditions["mixtures"]:
         name = mixture["name"]
         comp1 = mixture["component1"]
@@ -233,15 +264,19 @@ def main():
         for conc in mixture["concentrations"]:
             for temp in mixture["temperatures"]:
                 dir = os.path.join(os.getcwd(), str(name), str(conc), str(temp))
+                jobdir_list.append(dir)
                 if os.path.exists(dir):
                     try:
                         sim_out = os.path.join(dir, "simulation_output")
                         num_dcds = [file for file in os.listdir(sim_out) if file.endswith(".dcd")]
+                        jobdir_status.append(f"{len(num_dcds)*5} ns")
                         print(f"{dir} already exists with {len(num_dcds)*5} ns complete! Skipping to next directory.\n")
                     except FileNotFoundError:
+                        jobdir_status.append(f"{0} ns")
                         print(f"{dir} exists without 'simulation_output'. Still skipping to next directory.")
                     continue
                 else:
+                    jobdir_status.append(f"{0} ns")
                     os.makedirs(dir)
                     print(f"Directory {dir} created")
 
@@ -255,10 +290,13 @@ def main():
 
                 print(f"Created system.pdb in {system_pdb_path}.")
                 # copy system.pdb to dir
-
+                
+                slurm_job_name = f"{name}_{conc}_{temp}"
+                create_job(system_pdb_path, temp, os.path.join(name_dir, merged_xml), dir, slurm_job_name)
         _ = [os.remove(x) for x in xmls if os.path.isfile(x)]
         _ = [os.remove(p) for p in pdbs if os.path.isfile(p)]
         shutil.rmtree("ffdir")
 
+    print_summary(jobdir_list, jobdir_status)
 if __name__ == "__main__":
     main()

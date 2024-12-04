@@ -46,6 +46,8 @@ prev_chk_file = "md_npt-{i}.chk".format(i=ITER-1)
 #pdbinit_file = "npt_init-{i}.pdb".format(i=ITER)
 pdbfinal_file = "npt_final-{i}.pdb".format(i=ITER)
 
+print(f"TEMP:{TEMP}\nRES_FILE:{RES_FILE}\nPDB_FILE:{PDB_FILE}\nFF_FILE:{FF_FILE}")
+
 # simulation settings
 temperature=TEMP*kelvin
 pressure = 1.0*atmosphere
@@ -56,8 +58,10 @@ simulation_time_ns = 5
 freq_traj_output_ps = 30
 
 # input/output files
-residue_file = 'ffdir/<residue_file>.xml' # RES_FILE
+residue_file = RES_FILE
 strdir = 'simulation_output/'
+if not os.path.exists(strdir):
+    os.makedirs(strdir)
 
 # first load bonddefinitions into Topology
 Topology().loadBondDefinitions(residue_file)
@@ -66,11 +70,11 @@ Topology().loadBondDefinitions(residue_file)
 integ_md = LangevinIntegrator(temperature, friction, timestep)
 
 # read in pdb file
-pdb = PDBFile('<path/to>/system.pdb') # PDB_FILE
+pdb = PDBFile(PDB_FILE) # PDB_FILE
 modeller = Modeller(pdb.topology, pdb.positions)
 
 # create forcefield from *.xml force field file, and add extra particles (as needed) with modeller
-forcefield = ForceField('ffdir/<ff>.xml') # FF_FILE
+forcefield = ForceField(FF_FILE) # FF_FILE
 modeller.addExtraParticles(forcefield)
 
 # create system

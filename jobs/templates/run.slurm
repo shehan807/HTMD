@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -A gts-jmcdaniel43-chemx
-#SBATCH --job-name=######
+#SBATCH --job-name=###JOB_NAME###
 #SBATCH --time=72:00:00
 #SBATCH -N1 --gres=gpu:V100:1 --gres-flags=enforce-binding 
 #SBATCH --mem-per-gpu=32G
