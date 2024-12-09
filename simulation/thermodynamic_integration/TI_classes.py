@@ -107,13 +107,16 @@ def construct_OpenMM_simulation_object( simobject, modeller, platform, propertie
 
     # store force class objects
     simobject.nbondedForce = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == NonbondedForce][0]
-    simobject.customNonbondedForce = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == CustomNonbondedForce][0]
+    try:
+        simobject.customNonbondedForce = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == CustomNonbondedForce][0]
+    except IndexError as ie:
+        print(f"No customNonbondedForce found in XML: {ie}")
     #simobject.custombond = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == CustomBondForce][0]
     #simobject.drudeForce = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == DrudeForce][0]
 
     # PME for electrostatics, Cutoff for custom. Probably fine to hard-code these in,
     # as I don't envision ever using anything else...
-    simobject.nbondedForce.setNonbondedMethod(NonbondedForce.Ewald)
+    simobject.nbondedForce.setNonbondedMethod(NonbondedForce.PME)
     simobject.customNonbondedForce.setNonbondedMethod(NonbondedForce.CutoffPeriodic)
 
     # create OpenMM simulation object
@@ -246,7 +249,6 @@ class TI(object):
 
           # this is data structure that contains atom data for solute.  We will fill this list with 'atom_drude_pair' objects
           self.solute_atoms=[]
-          print("self.solute_atoms:")
           # print(self.solute_atoms)
           # fill this data structure
           flag = self.create_solute_atoms_data()
@@ -402,7 +404,6 @@ class TI(object):
           solute_drude_indices=[]
           # get atom indices of solute
           for res in self.simmd.topology.residues():
-              print(f"DEBUGGING: res.name={res.name}, res.index={res.index}\nDEBUGGING: self.solutename={self.solutename}, self.soluteID={self.soluteID}") 
               if (res.name == self.solutename) and (res.index == self.soluteID):
                   flag=1
                   for i in range(len(res._atoms)):
@@ -460,7 +461,6 @@ class TI(object):
           atomname=[]
           atomindex=[]
           for res in self.simmd.topology.residues():
-              print(f"DEBUGGING: res.name={res.name}, res.index={res.index}\nDEBUGGING: self.solutename={self.solutename}, self.soluteID={self.soluteID}") 
               if (res.name == self.solutename) and (res.index == self.soluteID):
                  for i in range(len(res._atoms)):
                       # global index of atom

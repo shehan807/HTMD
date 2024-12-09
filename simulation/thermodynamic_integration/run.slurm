@@ -22,9 +22,11 @@ SCRIPT_DIR="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/simula
 
 export TEMP=###TEMP###
 export SLT_ID=###SLT_ID###
-export RES_FILE=###RES_FILE###
+
+export FFDIR=###FFDIR###
+export RES_FILE="$FFDIR/###RES_FILE###"
+export FF_FILE="$FFDIR/###FF_FILE###"
 export PDB_FILE=###PDB_FILE###
-export FF_FILE=###FF_FILE###
 
 python $SCRIPT_DIR/run_TI_LJ.py  &>> energy_traj
 bash $SCRIPT_DIR/get_Etxt.sh

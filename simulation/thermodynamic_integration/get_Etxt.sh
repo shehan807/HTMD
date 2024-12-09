@@ -4,8 +4,8 @@
 CONVERSION_FACTOR=0.239005736
 
 # Create a temporary file to store intermediate results
-temp_file="E_temp.txt"
-final_file="E.txt"
+temp_file="$PWD/E_temp.txt"
+final_file="$PWD/E.txt"
 
 # Clear the output file
 > $temp_file
@@ -14,9 +14,11 @@ final_file="E.txt"
 module load anaconda3 
 source activate mdanalysis
 
-python3 integrate_dEdlambda.py electrostatic/dE_dlambda.log | tail -n 1 | awk '{print $1}' >> $temp_file
-python3 integrate_dEdlambda.py repulsion/dE_dlambda.log | tail -n 1 | awk '{print $1}' >> $temp_file
-python3 integrate_dEdlambda.py VDW/dE_dlambda.log | tail -n 1 | awk '{print $1}' >> $temp_file
+SCRIPT_DIR="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/simulation/thermodynamic_integration"
+
+python3 $SCRIPT_DIR/integrate_dEdlambda.py "$PWD/electrostatic/dE_dlambda.log" | tail -n 1 | awk '{print $1}' >> $temp_file
+python3 $SCRIPT_DIR/integrate_dEdlambda.py "$PWD/repulsion/dE_dlambda.log" | tail -n 1 | awk '{print $1}' >> $temp_file
+python3 $SCRIPT_DIR/integrate_dEdlambda.py "$PWD/VDW/dE_dlambda.log" | tail -n 1 | awk '{print $1}' >> $temp_file
 
 # Extract the last line from each result, sum the values, and convert to kcal/mol
 sum_kj=$(awk '{sum+=$1} END {print sum}' $temp_file)
