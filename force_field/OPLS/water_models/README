@@ -1,0 +1,8 @@
+This folder contains a library of water models. LigParGen only created OPLS-AA
+parameters for organic molecules, which would resulted in possibly inaccurate 
+water parameters since it isn't organic. Instead, the user may select from a 
+number of water models (with the default set to TIP4P).
+
+
+
+For more details, see: https://github.com/Isra3l/ligpargen/issues/6#issuecomment-1062244104

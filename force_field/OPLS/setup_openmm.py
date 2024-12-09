@@ -48,6 +48,13 @@ def parser():
         default="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/ligpargen-image/LPG.sif",
         help="Path to the .sif file for LigParGen (default: /storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/ligpargen-image/LPG.sif)"
     )
+    parser.add_argument(
+        "-w",
+        "--water_model",
+        type=str,
+        default="tip3p",
+        help="Name of water model (must be lower case): spce, swm4-dp, tip3p, TIP3P-FB, tip4p, tip4p-ew, tip4p-fb, tip5p"
+    )
 
     args = parser.parse_args()
 
@@ -60,29 +67,37 @@ def parser():
         conditions = yaml.safe_load(f)
 
     sif_file = args.sif_file
+    water_model = args.water_model 
 
-    return molecule_map, conditions, sif_file
+    return molecule_map, conditions, sif_file, water_model
 
-def run_ligpargen(molecule, charge, smiles, sif_file):
-    cmd = f"apptainer exec --bind $(pwd):/opt/output {sif_file} bash -c 'ligpargen -n {molecule} -p {molecule} -r {molecule} -c {charge} -o 3 -cgen CM1A -s \"{smiles}\"'"
-    subprocess.run(cmd, shell=True)
+def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_models_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/water_models"):
     mol_dir = f"{molecule}"
-    xml_file = os.path.join(mol_dir, f"{molecule}.openmm.xml")
-    pdb_file = os.path.join(mol_dir, f"{molecule}.openmm.pdb")
+    if molecule != "HOH":
+        cmd = f"apptainer exec --bind $(pwd):/opt/output {sif_file} bash -c 'ligpargen -n {molecule} -p {molecule} -r {molecule} -c {charge} -o 3 -cgen CM1A -s \"{smiles}\"'"
+        subprocess.run(cmd, shell=True)
+        xml_file = os.path.join(mol_dir, f"{molecule}.openmm.xml")
+        pdb_file = os.path.join(mol_dir, f"{molecule}.openmm.pdb")
 
-    xml_file = shutil.move(xml_file, f"{molecule}.xml")
-    pdb_file = shutil.move(pdb_file, f"{molecule}.pdb")
+        xml_file = shutil.move(xml_file, f"{molecule}.xml")
+        pdb_file = shutil.move(pdb_file, f"{molecule}.pdb")
+        
+        shutil.rmtree(mol_dir)
+    elif molecule == "HOH":
+        xml_file = os.path.join(water_models_path, water_model, f"{water_model}.xml")
+        pdb_file = os.path.join(water_models_path, water_model, f"{water_model}.pdb")
 
-    shutil.rmtree(mol_dir)
+        xml_file = shutil.copy(xml_file, f"{molecule}.xml")
+        pdb_file = shutil.copy(pdb_file, f"{molecule}.pdb")
     return xml_file, pdb_file
 
 def merge_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/XML_REFORMAT"):
     cmd = f"python {os.path.join(script_path,'LPG_reformat.py')} --xml_files {' '.join(xml_files)} --output {output_dir}; ls"
     subprocess.run(cmd, shell=True)
-    base_names = [
+    base_names = sorted([
         os.path.splitext(os.path.basename(file))[0]
         for file in xml_files
-    ]
+    ])
     output = os.path.join(output_dir, "_".join(base_names) + ".xml")
     return output
 
@@ -223,7 +238,7 @@ def main():
     """
     """
     # Parse command-line arguments
-    molecule_map, conditions, sif_file = parser()
+    molecule_map, conditions, sif_file, water_model = parser()
     jobdir_list = []
     jobdir_status = []
     for mixture in conditions["mixtures"]:
@@ -238,7 +253,7 @@ def main():
             CHARGE = molecule_map[mol]["CHARGE"]
             SMILES = molecule_map[mol]["SMILES"]
 
-            mol_xml, mol_pdb = run_ligpargen(MOL, CHARGE, SMILES, sif_file)
+            mol_xml, mol_pdb = run_ligpargen(MOL, CHARGE, SMILES, sif_file, water_model=water_model)
             print(f"generated {mol_xml} and {mol_pdb}")
             xmls.append(mol_xml)
             pdbs.append(mol_pdb)
