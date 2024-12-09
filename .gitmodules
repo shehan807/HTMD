@@ -4,3 +4,6 @@
 [submodule "force_field/SAPT/SAPT_force_field_OpenMM"]
 	path = force_field/SAPT/SAPT_force_field_OpenMM
 	url = git@github.com:jmcdaniel43/SAPT_force_field_OpenMM.git
+[submodule "simulation/thermodynamic_integration/Thermodynamic_Integration"]
+	path = simulation/thermodynamic_integration/Thermodynamic_Integration
+	url = git@github.com:shehan807/Thermodynamic_Integration.git
