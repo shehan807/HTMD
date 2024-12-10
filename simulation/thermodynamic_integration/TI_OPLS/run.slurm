@@ -18,7 +18,7 @@ module load anaconda3
 # fill this in with your OpenMM conda environment
 source activate openmm
 
-SCRIPT_DIR="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/simulation/thermodynamic_integration"
+SCRIPT_DIR="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/simulation/thermodynamic_integration/TI_OPLS"
 
 export TEMP=###TEMP###
 export SLT_ID=###SLT_ID###

@@ -103,7 +103,7 @@ temperature=TEMP*kelvin
 pressure = 1.0*atmosphere
 barofreq = 100
 
-lambda_range = [ 1.0 , 0.8 , 0.6 , 0.4 , 0.2 ,  0.0 ]  # lambda values for TI
+lambda_range = [ 1.0 , 0.9, 0.8 , 0.7, 0.6 , 0.5, 0.4 , 0.3, 0.2 , 0.1, 0.0 ]  # lambda values for TI
 
 NPT_simulation=True  # NPT or NVT simulation??  if False, pressure/barofreq will be ignored...
 

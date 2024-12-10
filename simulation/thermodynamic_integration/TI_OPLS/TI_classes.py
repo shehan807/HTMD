@@ -135,7 +135,6 @@ def construct_OpenMM_simulation_object( simobject, modeller, platform, propertie
          simobject.integrator.setMaxDrudeDistance(0.02)
     for i in range(simobject.system.getNumForces()):
         f = simobject.system.getForce(i)
-        print(f"DEBUG: Force (simobject): {type(f)}")
 
     # store force class objects
     simobject.nbondedForce = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == NonbondedForce][0]
