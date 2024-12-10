@@ -183,6 +183,9 @@ for interaction_type in TI_jobs:
     # create system
     system = forcefield.createSystem(modeller.topology, nonbondedCutoff=1.4*nanometer, constraints=None, rigidWater=True)
     system = OPLS_LJ(system)
+    for i in range(system.getNumForces()):
+        f = system.getForce(i)
+        print(f"DEBUG: Force: {type(f)}")
 
     # if NPT simulation
     if NPT_simulation:

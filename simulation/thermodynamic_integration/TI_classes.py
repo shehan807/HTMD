@@ -37,7 +37,36 @@ def define_energy_function_rep( lambda_rep_string , lambda_attrac_string ):
     string='{0}*A/rb^12 + {1}; rb=(0.5*0.4^6*(1.0-{0})^2+r^6)^(1.0/6.0) ;  A=sqrt(A1*A2) ; A1=4*eps1*sig1^12 ; A2=4*eps2*sig2^12 ; C1=4*eps1*sig1^6 ; C2=4*eps2*sig2^6 '.format(lambda_rep_string, lambda_attrac_string)
     return string
 
-
+# this is a special function for updated a created OPLS system 
+def OPLS_LJ(system):
+    forces = {system.getForce(index).__class__.__name__: system.getForce(
+        index) for index in range(system.getNumForces())}
+    nonbonded_force = forces['NonbondedForce']
+    lorentz = CustomNonbondedForce(
+        '4*epsilon*((sigma/r)^12-(sigma/r)^6); sigma=sqrt(sigma1*sigma2); epsilon=sqrt(epsilon1*epsilon2)')
+    lorentz.setNonbondedMethod(nonbonded_force.getNonbondedMethod())
+    lorentz.addPerParticleParameter('sigma')
+    lorentz.addPerParticleParameter('epsilon')
+    lorentz.setCutoffDistance(nonbonded_force.getCutoffDistance())
+    system.addForce(lorentz)
+    LJset = {}
+    for index in range(nonbonded_force.getNumParticles()):
+        charge, sigma, epsilon = nonbonded_force.getParticleParameters(index)
+        LJset[index] = (sigma, epsilon)
+        lorentz.addParticle([sigma, epsilon])
+        nonbonded_force.setParticleParameters(
+            index, charge, sigma, epsilon * 0)
+    for i in range(nonbonded_force.getNumExceptions()):
+        (p1, p2, q, sig, eps) = nonbonded_force.getExceptionParameters(i)
+        # ALL THE 12,13 and 14 interactions are EXCLUDED FROM CUSTOM NONBONDED
+        # FORCE
+        lorentz.addExclusion(p1, p2)
+        if eps._value != 0.0:
+            #print p1,p2,sig,eps
+            sig14 = sqrt(LJset[p1][0] * LJset[p2][0])
+            eps14 = sqrt(LJset[p1][1] * LJset[p2][1])
+            nonbonded_force.setExceptionParameters(i, p1, p2, q, sig14, eps)
+    return system
 
 #**********************************************************************************************
 # set up logger
@@ -104,13 +133,16 @@ def construct_OpenMM_simulation_object( simobject, modeller, platform, propertie
     # this should prevent polarization catastrophe during equilibration, but shouldn't affect results afterwards ( 0.2 Angstrom displacement is very large for equil. Drudes)
     if isinstance( simobject.integrator, mm.openmm.DrudeLangevinIntegrator ):
          simobject.integrator.setMaxDrudeDistance(0.02)
+    for i in range(simobject.system.getNumForces()):
+        f = simobject.system.getForce(i)
+        print(f"DEBUG: Force (simobject): {type(f)}")
 
     # store force class objects
     simobject.nbondedForce = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == NonbondedForce][0]
-    try:
-        simobject.customNonbondedForce = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == CustomNonbondedForce][0]
-    except IndexError as ie:
-        print(f"No customNonbondedForce found in XML: {ie}")
+    # try:
+    simobject.customNonbondedForce = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == CustomNonbondedForce][0]
+    # except IndexError as ie:
+    #     print(f"No customNonbondedForce found in XML: {ie}")
     #simobject.custombond = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == CustomBondForce][0]
     #simobject.drudeForce = [f for f in [simobject.system.getForce(i) for i in range(simobject.system.getNumForces())] if type(f) == DrudeForce][0]
 
@@ -523,6 +555,7 @@ class TI(object):
                   self.integrator = copy.deepcopy( outerclass.integrator )
              
              self.system = outerclass.forcefield.createSystem(outerclass.modeller.topology, nonbondedCutoff=outerclass.Cutoff, constraints=None, rigidWater=True)
+             self.system = OPLS_LJ(self.system)
 
              #******   create simulation object
              #******   self.simmd will be created.
