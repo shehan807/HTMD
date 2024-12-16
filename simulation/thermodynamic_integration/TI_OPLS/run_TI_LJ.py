@@ -19,6 +19,22 @@ SLT_ID = int(os.environ['SLT_ID'])
 RES_FILE = str(os.environ['RES_FILE'])
 PDB_FILE = str(os.environ['PDB_FILE'])
 FF_FILE  = str(os.environ['FF_FILE'])
+# Define the argument parser
+parser = argparse.ArgumentParser(description="Thermodynamic Integration Script")
+
+# Add optional arguments with default values
+parser.add_argument("--delta_lambda", type=float, default=0.1, 
+                    help="Difference between consecutive lambda values for TI (default: 0.1)")
+parser.add_argument("--n_equil", type=int, default=10000, 
+                    help="Number of equilibration steps after each change of Hamiltonian (default: 10000)")
+parser.add_argument("--n_deriv", type=int, default=500, 
+                    help="Number of derivatives to sample for each lambda value (default: 500)")
+parser.add_argument("--n_step", type=int, default=500, 
+                    help="Number of MD steps between derivative sampling (default: 500)")
+
+# Parse arguments
+args = parser.parse_args()
+
 
 def OPLS_LJ(system):
     forces = {system.getForce(index).__class__.__name__: system.getForce(
@@ -103,17 +119,19 @@ temperature=TEMP*kelvin
 pressure = 1.0*atmosphere
 barofreq = 100
 
-#lambda_range = [ 1.0 , 0.9, 0.8 , 0.7, 0.6 , 0.5, 0.4 , 0.3, 0.2 , 0.1, 0.0 ]  # lambda values for TI
-lambda_range = [ 1.0 , 0.8 , 0.6 , 0.4 , 0.2 , 0.0 ]  # lambda values for TI
+lambda_range = np.arange(1.0, -args.delta_lambda, -args.delta_lambda).tolist()
 
 NPT_simulation=True  # NPT or NVT simulation??  if False, pressure/barofreq will be ignored...
 
-n_equil=10000 # Equilibration after each change of Hamiltonian
-n_deriv=500 # number of derivatives to sample for each lambda value
-n_step=500  # number of MD steps between derivative sampling
+n_equil=args.n_equil # Equilibration after each change of Hamiltonian
+n_deriv=args.n_deriv # number of derivatives to sample for each lambda value
+n_step=args.n_step  # number of MD steps between derivative sampling
 trjsteps = 10000 # steps for saving trajectory...
 chksteps =  1000 # steps for saving checkpoint file
- 
+
+print(f"lambda_range: {lambda_range}")
+print(f"n_equil: {n_equil}, n_deriv: {n_deriv}, n_step: {n_step}")
+
 #*********************************** End Input section
 
 
