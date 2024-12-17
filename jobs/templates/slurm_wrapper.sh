@@ -7,6 +7,8 @@ export PDB_FILE=###PDB_FILE###
 export FF_FILE=###FF_FILE###
 
 jobid_old=$(sbatch --parsable run.slurm --export=ITER)
+echo "ls:"; ls
+echo "pwd:"; pwd
 echo "run.slurm #${ITER} submitted"
 
 START=$ITER+1
