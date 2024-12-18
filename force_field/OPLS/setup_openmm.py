@@ -45,8 +45,8 @@ def parser():
         "-s",
         "--sif_file",
         type=str,
-        default="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/ligpargen-image/LPG.sif",
-        help="Path to the .sif file for LigParGen (default: /storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/ligpargen-image/LPG.sif)"
+        default="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/ligpargen-image/LPG.sif",
+        help="Path to the .sif file for LigParGen (default: /storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/ligpargen-image/LPG.sif)"
     )
     parser.add_argument(
         "-w",
@@ -71,7 +71,7 @@ def parser():
 
     return molecule_map, conditions, sif_file, water_model
 
-def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_models_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/water_models"):
+def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_models_path="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/water_models"):
     mol_dir = f"{molecule}"
     if molecule != "HOH":
         cmd = f"apptainer exec --bind $(pwd):/opt/output {sif_file} bash -c 'ligpargen -n {molecule} -p {molecule} -r {molecule} -c {charge} -o 3 -cgen CM1A -s \"{smiles}\"'"
@@ -91,7 +91,7 @@ def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_
         pdb_file = shutil.copy(pdb_file, f"{molecule}.pdb")
     return xml_file, pdb_file
 
-def merge_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/XML_REFORMAT"):
+def merge_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/XML_REFORMAT"):
     cmd = f"python {os.path.join(script_path,'LPG_reformat.py')} --xml_files {' '.join(xml_files)} --output {output_dir}; ls"
     subprocess.run(cmd, shell=True)
     base_names = sorted([
