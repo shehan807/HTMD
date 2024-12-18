@@ -13,6 +13,7 @@ p4448,T48,+1,CCCC[P+](CCCC)(CCCC)CCCCCCCC
 p5555,T5P,+1,CCCCC[P+](CCCCC)(CCCCC)CCCCC
 p6666,T6P,+1,CCCCCC[P+](CCCCCC)(CCCCCC)CCCCCC
 lidocaine,LDC,0,CCN(CC)CC(=O)NC1=C(C=CC=C1C)C
+lidocaine_plus,LDC,0,CC[NH+](CC)CC(=O)NC1=C(C=CC=C1C)C
 water,HOH,0,O
 dmbs,DMB,-1,CC1=CC(=C(C=C1)S(=O)(=O)[O-])C
 tmbs,TMB,-1,CC1=CC(=C(C(=C1)C)S(=O)(=O)[O-])C
@@ -24,3 +25,4 @@ tso,TSO,-1,CC1=CC=C(C=C1)S(=O)(=O)[O-]
 bzso3,BZS,-1,C1=CC=C(C=C1)S(=O)(=O)[O-] 
 br,BR,-1,[Br-]
 oleic_acid,OLA,0,CCCCCCCC/C=C\CCCCCCCC(=O)O
+oleic_acid_minus,OLA,0,CCCCCCCC/C=C\CCCCCCCC(=O)[O-]
