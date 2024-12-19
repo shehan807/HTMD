@@ -168,7 +168,7 @@ def create_topology(molecules, num_molecules, target_density=800, system_dir = "
     topology.to_file(system_file_path)
     return system_file_path
 
-def create_job(system_pdb_path, temp, merged_xml, job_dir, slurm_job_name, template_dir="/storage/coda1/p-jmcdaniel43/0/sparmar32/scripts/HTMD/jobs/templates"):
+def create_job(system_pdb_path, temp, merged_xml, job_dir, slurm_job_name, template_dir="/storage/home/hhive1/sparmar32/projects/HTMD/jobs/templates"):
     """
     Creates job-specific SLURM scripts and updates parameters.
     """

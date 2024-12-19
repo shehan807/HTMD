@@ -4,7 +4,7 @@
 #SBATCH --time=72:00:00
 #SBATCH -N1 --gres=gpu:V100:1 --gres-flags=enforce-binding 
 #SBATCH --mem-per-gpu=32G
-#SBATCH -qinferno
+#SBATCH --partition=hive-gpu
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=parmar@gatech.edu
 #SBATCH --output=energies.%x-%j
