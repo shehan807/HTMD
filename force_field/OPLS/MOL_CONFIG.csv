@@ -30,7 +30,7 @@ water,HOH,0,O
 dmbs,DMB,-1,CC1=CC(=C(C=C1)S(=O)(=O)[O-])C
 tmbs,TMB,-1,CC1=CC(=C(C(=C1)C)S(=O)(=O)[O-])C
 sal,SAL,-1,C1=CC=C(C(=C1)C(=O)O)[O-]
-bf4,BF4,-1,[B-](F)(F)(F)F
+bf4,BF4,-1,F[B-](F)(F)F
 tfsi,TF2,-1,C(F)(F)(F)S(=NS(=O)(=O)C(F)(F)F)(=O)[O-]
 tfa,TFA,-1,C(=O)(C(F)(F)F)[O-]
 tso,TSO,-1,CC1=CC=C(C=C1)S(=O)(=O)[O-]

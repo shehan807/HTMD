@@ -109,8 +109,8 @@ def molar_mass(mol):
 
 def get_num_molecules(comp1, comp2, conc, map):
     
-    molecules1 = [Molecule.from_smiles(map[comp]["SMILES"]) for comp in comp1]
-    molecules2 = [Molecule.from_smiles(map[comp]["SMILES"]) for comp in comp2]
+    molecules1 = [Molecule.from_smiles(map[comp]["SMILES"], allow_undefined_stereo=True) for comp in comp1]
+    molecules2 = [Molecule.from_smiles(map[comp]["SMILES"], allow_undefined_stereo=True) for comp in comp2]
 
     mass1 = [molar_mass(Molecule) for Molecule in molecules1]
     mass2 = [molar_mass(Molecule) for Molecule in molecules2]
@@ -121,16 +121,18 @@ def get_num_molecules(comp1, comp2, conc, map):
     if sum(mass1) > sum(mass2):
         if conc == 0.0:
             n1 = 0
+            n2 = 200
         else:
             n1 = 200
-        n2 = int((1 / sum(mass2)) * (n1*sum(mass1) / conc - n1*sum(mass1)))
+            n2 = int((1 / sum(mass2)) * (n1*sum(mass1) / conc - n1*sum(mass1)))
     elif sum(mass2) > sum(mass1):
         if (1-conc) == 0.0:
             n2 = 0
+            n1 = 200
         else:
             n2 = 200
-        print(mass1, mass2, n2)
-        n1 = int((1 / sum(mass1)) * ((n2*sum(mass2)) / (1-conc) - n2*sum(mass2)) )
+            n1 = int((1 / sum(mass1)) * ((n2*sum(mass2)) / (1-conc) - n2*sum(mass2)) )
+    print(mass1, mass2, n1, n2)
     
     num_molecules1 = len(molecules1) * [n1]
     num_molecules2 = len(molecules2) * [n2]
@@ -258,6 +260,7 @@ def main():
             xmls.append(mol_xml)
             pdbs.append(mol_pdb)
         print(f"xmls: {xmls}")
+        xmls = list(set(xmls))
         merged_xml = merge_xml_files(xmls)
         print(f"generated {merged_xml}\n")
 
