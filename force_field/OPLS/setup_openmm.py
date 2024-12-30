@@ -73,16 +73,24 @@ def parser():
 
 def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_models_path="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/water_models"):
     mol_dir = f"{molecule}"
+    library_dir = "/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/il_xml_library/IL/2009IL/XML"
+    library_xml_file = os.path.join(library_dir, f"{molecule}.xml")
+    library_pdb_file = os.path.join(library_dir, f"{molecule}.pdb")
     if molecule != "HOH":
-        cmd = f"apptainer exec --bind $(pwd):/opt/output {sif_file} bash -c 'ligpargen -n {molecule} -p {molecule} -r {molecule} -c {charge} -o 3 -cgen CM1A -s \"{smiles}\"'"
-        subprocess.run(cmd, shell=True)
-        xml_file = os.path.join(mol_dir, f"{molecule}.openmm.xml")
-        pdb_file = os.path.join(mol_dir, f"{molecule}.openmm.pdb")
+        if os.path.isfile(library_xml_file) and os.path.isfile(library_pdb_file):
+            print(f"Found {molecule} in library; using existing XML and PDB.")
+            xml_file = shutil.copy(library_xml_file, f"{molecule}.xml")
+            pdb_file = shutil.copy(library_pdb_file, f"{molecule}.pdb") 
+        else:
+            cmd = f"apptainer exec --bind $(pwd):/opt/output {sif_file} bash -c 'ligpargen -n {molecule} -p {molecule} -r {molecule} -c {charge} -o 3 -cgen CM1A -s \"{smiles}\"'"
+            subprocess.run(cmd, shell=True)
+            xml_file = os.path.join(mol_dir, f"{molecule}.openmm.xml")
+            pdb_file = os.path.join(mol_dir, f"{molecule}.openmm.pdb")
 
-        xml_file = shutil.move(xml_file, f"{molecule}.xml")
-        pdb_file = shutil.move(pdb_file, f"{molecule}.pdb")
-        
-        shutil.rmtree(mol_dir)
+            xml_file = shutil.move(xml_file, f"{molecule}.xml")
+            pdb_file = shutil.move(pdb_file, f"{molecule}.pdb")
+            
+            shutil.rmtree(mol_dir)
     elif molecule == "HOH":
         xml_file = os.path.join(water_models_path, water_model, f"{water_model}.xml")
         pdb_file = os.path.join(water_models_path, water_model, f"{water_model}.pdb")

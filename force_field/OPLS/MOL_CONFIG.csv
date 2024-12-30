@@ -23,7 +23,7 @@ eoa,EOA,+1,C(CO)[NH3+]
 pf6,PF6,-1,F[P-](F)(F)(F)(F)F
 dca,DCA,-1,C(=[N-])=NC#N
 formate,FRM,-1,C(=O)[O-]
-nitrate,NO3,-1,[N+](=O)([O-])[O-]
+no3,NO3,-1,[N+](=O)([O-])[O-]
 lidocaine,LDC,0,CCN(CC)CC(=O)NC1=C(C=CC=C1C)C
 lidocaine_plus,LDC,+1,CC[NH+](CC)CC(=O)NC1=C(C=CC=C1C)C
 water,HOH,0,O
