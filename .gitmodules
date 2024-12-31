@@ -10,3 +10,6 @@
 [submodule "force_field/OPLS/il_xml_library/IL"]
 	path = force_field/OPLS/il_xml_library/IL
 	url = git@github.com:shehan807/IL.git
+[submodule "force_field/OPLS/il_xml_library/ilff"]
+	path = force_field/OPLS/il_xml_library/ilff
+	url = https://github.com/agiliopadua/ilff.git
