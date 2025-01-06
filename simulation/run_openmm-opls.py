@@ -54,7 +54,7 @@ pressure = 1.0*atmosphere
 friction = 1/picosecond 
 timestep = 0.001*picoseconds
 barofreq = 100
-simulation_time_ns = 15
+simulation_time_ns = 5
 freq_traj_output_ps = 30
 
 # input/output files

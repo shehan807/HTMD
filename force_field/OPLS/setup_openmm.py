@@ -140,6 +140,7 @@ def get_num_molecules(comp1, comp2, conc, map):
         else:
             n2 = 200
             n1 = int((1 / sum(mass1)) * ((n2*sum(mass2)) / (1-conc) - n2*sum(mass2)) )
+    print("%%%%% MASS AND NUMBER %%%%%")
     print(mass1, mass2, n1, n2)
     
     num_molecules1 = len(molecules1) * [n1]
