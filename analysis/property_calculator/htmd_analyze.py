@@ -4,7 +4,41 @@ import argparse
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 import numpy as np
+import glob, re
 from density import get_rho
+
+def count_direction_changes(x, y):
+    # 1. Sort data by x
+    x = np.array(x, dtype=float)
+    y = np.array(y, dtype=float)    
+    idx = np.argsort(x)
+    xs = x[idx]
+    ys = y[idx]
+    
+    # 2. Compute first differences
+    diffs = np.diff(ys)
+    
+    # 3. Count how many times the sign changes
+    sign_changes = 0
+    for i in range(len(diffs) - 1):
+        if diffs[i] * diffs[i+1] < 0:
+            sign_changes += 1
+    
+    return sign_changes
+
+
+def smoothness_index(x, y):
+    # Sort the data by x
+    x = np.array(x, dtype=float)
+    y = np.array(y, dtype=float)    
+    idx = np.argsort(x)
+    ys = y[idx]
+    
+    # Compute second differences
+    d2 = np.diff(ys, n=2)  # This yields [y3 - 2y2 + y1, y4 - 2y3 + y2, ...]
+    
+    # Sum of squares of second differences
+    return np.sum(d2**2)
 
 def find_simulation_outputs(base_dir, pdb_name, dcd_name):
     results = []
@@ -17,8 +51,43 @@ def find_simulation_outputs(base_dir, pdb_name, dcd_name):
             if len(parts) >= 3:
                 system, concentration, temperature = parts[-3], parts[-2], parts[-1]
                 sim_output_path = os.path.join(root, "simulation_output")
-                pdb_file = os.path.join(sim_output_path, pdb_name)
-                dcd_file = os.path.join(sim_output_path, dcd_name)
+                if pdb_name:
+                    pdb_file = os.path.join(sim_output_path, pdb_name)
+                else:
+                    pattern = os.path.join(sim_output_path, "npt_final-*.pdb")
+                    files = glob.glob(pattern)
+
+                    if not files:
+                        print(
+                            f"No files matching 'npt_final-#.pdb' found in {sim_output_path}"
+                        )
+                        pdb_file = "NONE"
+                    else: 
+                        # Use regex to parse out the number after 'npt_final-'
+                        # and pick the file with the largest integer
+                        pdb_file = max(
+                            files, 
+                            key=lambda f: int(re.search(r'npt_final-(\d+)\.pdb$', os.path.basename(f)).group(1))
+                        )
+                if dcd_name:
+                    dcd_file = os.path.join(sim_output_path, dcd_name)
+                else:
+                    pattern = os.path.join(sim_output_path, "md_npt-*.dcd")
+                    files = glob.glob(pattern)
+
+                    if not files:
+                        raise FileNotFoundError(
+                            f"No files matching 'md_npt-#.dcd' found in {sim_output_path}"
+                        )
+                        dcd_file = "NONE"
+                    else: 
+                        # Use regex to parse out the number after 'npt_final-'
+                        # and pick the file with the largest integer
+                        dcd_file = max(
+                            files, 
+                            key=lambda f: int(re.search(r'md_npt-(\d+)\.dcd$', os.path.basename(f)).group(1))
+                        ) 
+
                 if os.path.isfile(pdb_file) and os.path.isfile(dcd_file):
                     results.append((system, concentration, temperature, pdb_file, dcd_file))
                 else:
@@ -97,6 +166,15 @@ def plot_density_vs_concentration_grouped(plot_data):
         sorted_data = sorted(data, key=lambda point: point[0])
         concentrations, densities = zip(*sorted_data)
         pltspheretype(concentrations, densities, system_colors[system], 100, f"{system}", ax, fig)
+        
+        changes = count_direction_changes(concentrations, densities)        
+        smoothness = smoothness_index(concentrations, densities)
+        if (changes > 2) or (smoothness > 0.1):
+            print(f"{system} is considered noisy (smoothness={smoothness} and changes={changes})")
+            print("""Consider running for longer via:\n
+                    find . -type f -name "slurm_wrapper.sh" -exec sed -i 's/export ITER=#/export ITER=#/g' {} +\n
+                    find . -type f -name "slurm_wrapper.sh" -exec sed -i 's/END=#/END=#/g' {} +\n""")
+    
     ax.set_xlabel("Concentration", fontsize=20)
     ax.set_ylabel(r"Density ($\rm g/cm^3$)", fontsize=20)
     
@@ -170,8 +248,8 @@ def plot_experimental_comparison(exp_csv):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze densities from simulation outputs.")
     parser.add_argument("--base_dir", type=str, default=os.getcwd(), help="Base directory to start searching.")
-    parser.add_argument("--pdb", type=str, required=True, help="Name of the topology file (e.g., PDB, PSF).")
-    parser.add_argument("--dcd", type=str, required=True, help="Name of the trajectory file (e.g., XTC, DCD).")
+    parser.add_argument("--pdb", type=str, default=None, help="Name of the topology file (e.g., PDB, PSF).")
+    parser.add_argument("--dcd", type=str, default=None, help="Name of the trajectory file (e.g., XTC, DCD).")
     parser.add_argument("--csv", type=str, default="density_results.csv", help="Output CSV file name.")
     parser.add_argument("--eq", type=float, default=0.8, help="Fraction of trajectory used for averaging.")
     parser.add_argument("--exp_csv", type=str, help="CSV file for experimental comparison.")
