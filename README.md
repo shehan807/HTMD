@@ -18,3 +18,9 @@ of ionic liquids. The directory organization is kept in summary.txt and created 
 - [ ] compare OPLS with SAPT FF
 
 # Done
+
+
+# Atomate2 / OpenMM 
+- [ ] extend download_opls_xml() to use BOSS v5.1 (via Docker / docker-py)
+
+- [ ] 

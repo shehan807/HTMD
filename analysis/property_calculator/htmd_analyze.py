@@ -76,7 +76,7 @@ def find_simulation_outputs(base_dir, pdb_name, dcd_name):
                     files = glob.glob(pattern)
 
                     if not files:
-                        raise FileNotFoundError(
+                        print(
                             f"No files matching 'md_npt-#.dcd' found in {sim_output_path}"
                         )
                         dcd_file = "NONE"
@@ -134,13 +134,13 @@ def pltspheretype(x, y, color, s, label, ax, fig):
             alpha=(i**5) / (n**5) * 0.3,
             edgecolors="none",
         )
-        ax.plot(
-            x_shiny,
-            y_shiny,
-            color=color,
-            linestyle="--",
-            label=label
-        )
+        #ax.plot(
+        #    x_shiny,
+        #    y_shiny,
+        #    color=color,
+        #    linestyle="--",
+        #    label=label
+        #)
 
 def plot_density_vs_concentration_grouped(plot_data):
     grouped_data = {}
@@ -215,7 +215,7 @@ def plot_experimental_comparison(exp_csv):
     min_density = min(min(exp_density), min(md_density))
     ax.set_xlim(min_density*0.8, max_density*1.2)
     ax.set_ylim(min_density*0.8, max_density*1.2)
-
+    
     # Plot y=x reference line
     max_density = max(max(exp_density), max(md_density))
     ax.plot([0, max_density*1.4], [0, max_density*1.4], linestyle="-", color="black")
