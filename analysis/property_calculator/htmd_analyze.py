@@ -134,13 +134,14 @@ def pltspheretype(x, y, color, s, label, ax, fig):
             alpha=(i**5) / (n**5) * 0.3,
             edgecolors="none",
         )
-        #ax.plot(
-        #    x_shiny,
-        #    y_shiny,
-        #    color=color,
-        #    linestyle="--",
-        #    label=label
-        #)
+        ax.plot(
+            x_shiny,
+            y_shiny,
+            color=color,
+            linestyle="--",
+            alpha=0.2,
+            label=label
+        )
 
 def plot_density_vs_concentration_grouped(plot_data):
     grouped_data = {}
