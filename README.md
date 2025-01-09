@@ -25,12 +25,12 @@ of ionic liquids. The directory organization is kept in summary.txt and created 
 * typical MD calculation of 1 molecular system is atleast a GPU job and ~100 MB - 10 GB
 * memory footprint of 1 system depends on simulation time (10-300 nanoseconds) and molecule size (roughly, 1G/10ns)
 * 1 system may have ~100 parameters to study (temperature, concentration, etc.)
-* \textbf{studying ~1000s of systems quickly becomes ~10-100 TB}
-* \textbf{manually submitting these jobs is prohibitive}
+* **studying ~1000s of systems quickly becomes ~10-100 TB**
+* **manually submitting these jobs is prohibitive**
 
 - [ ] Solutions / Alternatives to NERSC Software
 
-* (FireWorks)[https://materialsproject.github.io/fireworks/index.html]: Package many small jobs into a single large job (e.g., automatically run 100 serial workflows in parallel over 100 cores)
+* [FireWorks](https://materialsproject.github.io/fireworks/index.html): Package many small jobs into a single large job (e.g., automatically run 100 serial workflows in parallel over 100 cores)
 * MongoDB
 
 
