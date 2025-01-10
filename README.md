@@ -44,7 +44,7 @@ of ionic liquids. The directory organization is kept in summary.txt and created 
 - [ ] support for merging xml file outputs from ligpargen (see [merge_xml_files](https://github.com/shehan807/XML_REFORMAT/tree/6921e63aaf1014d7a7fe0b6642c3bf3581180129))
 	- [ ] Implement OPLS_LJ combination rules (if OPLS=True: OPLS_LJ(system) in [`openmm.jobs.core.py`](https://github.com/materialsproject/atomate2/blob/main/src/atomate2/openmm/jobs/core.py), see [implementation](https://github.com/shehan807/HTMD/blob/f195b3039477c1ce331371c3de743b7f76a1ca9b/simulation/run_openmm-opls.py#L82))
 
-- [ ] user support for binary/tertiary mixtures going from `concentration` --> `count` 
+- [ ] user support for binary/tertiary mixtures going from `concentration` --> `count`, i.e., `openff.utils.create_list_of_mol_spec_lists()` 
 
 - [ ] water_models 
 
