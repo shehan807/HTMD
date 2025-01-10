@@ -37,7 +37,7 @@ of ionic liquids. The directory organization is kept in summary.txt and created 
 
 # Atomate2 / OpenMM 
 
-## OPLS HTMD (See example):
+## 1. OPLS HTMD (See [results](https://github.com/shehan807/HTMD/tree/hive/results)):
 - [ ] extend `download_opls_xml()` to use BOSS v5.1 (via Docker / [docker-py](https://github.com/docker/docker-py))
 	- See [run_ligpargen](https://github.com/shehan807/HTMD/blob/f195b3039477c1ce331371c3de743b7f76a1ca9b/force_field/OPLS/setup_openmm.py#L74) for docker / apptainer implementation
 
@@ -50,7 +50,7 @@ of ionic liquids. The directory organization is kept in summary.txt and created 
 
 
 
-## Modifying openmm.core/openmm.jobs
+## 2. Modifying openmm.core/openmm.jobs
 - [ ] `equilibration_checker()` (add arguments to OpenMMFlowMaker? Or same as `EquilibrationDocs`? Emmet?)
 	- [ ] See [`count_direction_changes(x, y)`](https://github.com/shehan807/HTMD/blob/f195b3039477c1ce331371c3de743b7f76a1ca9b/analysis/property_calculator/htmd_analyze.py#L10) and [`smoothness_index`](https://github.com/shehan807/HTMD/blob/f195b3039477c1ce331371c3de743b7f76a1ca9b/analysis/property_calculator/htmd_analyze.py#L30)
 	- [ ] Create analogous `d_density_dt()` and `dU_dt()` functions 
@@ -88,6 +88,6 @@ of ionic liquids. The directory organization is kept in summary.txt and created 
 
 	- See [pressure_reporter](https://github.com/z-gong/mstk/blob/master/mstk/ommhelper/reporter/statedatareporter.py#L470)
 
-## Eventual support for SAPT-FF
+## 3. Eventual support for SAPT-FF
 - [ ] automate partial atomic charges via `gdma` from Psi4
 	
