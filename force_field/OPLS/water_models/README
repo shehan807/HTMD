@@ -3,6 +3,7 @@ parameters for organic molecules, which would resulted in possibly inaccurate
 water parameters since it isn't organic. Instead, the user may select from a 
 number of water models (with the default set to TIP4P).
 
-
+**NOTE:** These files have been modified to match the 1-4 scaling values in 
+the NonbondedForce class (i.e., changed from 0.83333 -> 0.5)
 
 For more details, see: https://github.com/Isra3l/ligpargen/issues/6#issuecomment-1062244104

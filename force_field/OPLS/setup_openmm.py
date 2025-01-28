@@ -7,12 +7,14 @@ Usage:
 """
 import os
 import argparse
+import glob
 import pandas as pd
 import yaml
 import subprocess
 import shutil 
 import mdtraj 
 from tabulate import tabulate
+from pathlib import Path 
 
 from openff.toolkit import ForceField, Molecule, Topology
 from openff.units import unit
@@ -99,14 +101,10 @@ def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_
         pdb_file = shutil.copy(pdb_file, f"{molecule}.pdb")
     return xml_file, pdb_file
 
-def merge_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/XML_REFORMAT"):
+def gather_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/XML_REFORMAT"):
     cmd = f"python {os.path.join(script_path,'LPG_reformat.py')} --xml_files {' '.join(xml_files)} --output {output_dir}; ls"
     subprocess.run(cmd, shell=True)
-    base_names = sorted([
-        os.path.splitext(os.path.basename(file))[0]
-        for file in xml_files
-    ])
-    output = os.path.join(output_dir, "_".join(base_names) + ".xml")
+    output = glob.glob(str(Path(output_dir) / "*_sorted.xml"))
     return output
 
 def molar_mass(mol):
@@ -179,7 +177,7 @@ def create_topology(molecules, num_molecules, target_density=800, system_dir = "
     topology.to_file(system_file_path)
     return system_file_path
 
-def create_job(system_pdb_path, temp, merged_xml, job_dir, slurm_job_name, template_dir="/storage/home/hhive1/sparmar32/projects/HTMD/jobs/templates"):
+def create_job(system_pdb_path, temp, all_xml, job_dir, slurm_job_name, template_dir="/storage/home/hhive1/sparmar32/projects/HTMD/jobs/templates"):
     """
     Creates job-specific SLURM scripts and updates parameters.
     """
@@ -212,9 +210,11 @@ def create_job(system_pdb_path, temp, merged_xml, job_dir, slurm_job_name, templ
         wrapper_content = f.read()
     # Replace placeholders in the SLURM script
     wrapper_content = wrapper_content.replace("###TEMP###", str(temp))
-    wrapper_content = wrapper_content.replace("###RES_FILE###", merged_xml.replace(".xml", "_residues.xml"))
+
+    residue_xmls = [xml.replace(".xml", "_residues.xml") for xml in all_xml]
+    wrapper_content = wrapper_content.replace("###RES_FILE###", ":".join(residue_xmls))
     wrapper_content = wrapper_content.replace("###PDB_FILE###", system_pdb_path)
-    wrapper_content = wrapper_content.replace("###FF_FILE###", merged_xml)
+    wrapper_content = wrapper_content.replace("###FF_FILE###", ":".join(all_xml))
     # Write the updated SLURM script to the job directory
     with open(job_wrapper, "w") as f:
         f.write(wrapper_content)
@@ -270,8 +270,7 @@ def main():
             pdbs.append(mol_pdb)
         print(f"xmls: {xmls}")
         xmls = list(set(xmls))
-        merged_xml = merge_xml_files(xmls)
-        print(f"generated {merged_xml}\n")
+        all_xml = gather_xml_files(xmls)
 
         # check if ffdir exists in mixture "name" directory (i.e., save only one copy of ff)
         name_dir  = os.path.join(os.getcwd(), str(name))
@@ -319,7 +318,9 @@ def main():
                 # copy system.pdb to dir
                 
                 slurm_job_name = f"{name}_{conc}_{temp}"
-                create_job(system_pdb_path, temp, os.path.join(name_dir, merged_xml), dir, slurm_job_name)
+                all_xml = [os.path.join(name_dir, xml) for xml in all_xml] 
+                
+                create_job(system_pdb_path, temp, all_xml, dir, slurm_job_name)
         _ = [os.remove(x) for x in xmls if os.path.isfile(x)]
         _ = [os.remove(p) for p in pdbs if os.path.isfile(p)]
         shutil.rmtree("ffdir")
