@@ -1,7 +1,7 @@
 import sys, os
-from simtk.openmm.app import *
-from simtk.openmm import *
-from simtk.unit import *
+from openmm.app import *
+from openmm import *
+from openmm.unit import *
 from sys import stdout
 def OPLS_LJ(system):
     forces = {system.getForce(index).__class__.__name__: system.getForce(

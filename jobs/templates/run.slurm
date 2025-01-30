@@ -16,7 +16,7 @@ module load cuda
 module load anaconda3
 
 # fill this in with your OpenMM conda environment
-source activate openmm_7.7
+source activate openmm_8.2
 
 SCRIPT_DIR="/storage/home/hhive1/sparmar32/projects/HTMD/simulation"
 
