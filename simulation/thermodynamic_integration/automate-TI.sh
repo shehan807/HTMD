@@ -4,8 +4,8 @@
 LOCAL_DIR=$(pwd)
 
 # Define the range of SLT_ID values
-START_ID=4
-END_ID=216
+START_ID=1
+END_ID=$1
 
 # Define the local template directory
 TEMPLATE_DIR="${LOCAL_DIR}/SLT_ID_TEMPLATE" # this is the default name
