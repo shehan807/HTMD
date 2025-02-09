@@ -19,8 +19,15 @@ if [ ! -d "$TEMPLATE_DIR" ]; then
     exit 1
 fi
 
+if [ "$END_ID" -le 250 ]; then
+    IDS=$(seq "$START_ID" "$END_ID")
+else
+    # Generate 250 unique random IDs from the range [START_ID .. END_ID]
+    IDS=$(shuf -i "${START_ID}-${END_ID}" -n 250)
+fi
+
 # Loop through the SLT_ID range
-for SLT_ID in $(seq $START_ID $END_ID); do
+for SLT_ID in $(IDS); do
     # Create directory for current SLT_ID
     OUTPUT_DIR="${OUTPUT_DIR_BASE}/SLT_${SLT_ID}"
     mkdir -p "$OUTPUT_DIR"
