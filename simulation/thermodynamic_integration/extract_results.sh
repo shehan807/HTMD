@@ -38,5 +38,5 @@ echo "Results have been summarized in $OUTPUT_CSV"
 # plot final results
 module load anaconda3
 conda activate generate_openmm
-python3 /storage/home/hhive1/sparmar32/projects/HTMD/analysis/plotting/visualization.py
+python3 /storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/analysis/plotting/visualization.py
 echo "Created hist.png"

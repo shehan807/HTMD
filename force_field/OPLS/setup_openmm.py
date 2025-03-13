@@ -47,8 +47,8 @@ def parser():
         "-s",
         "--sif_file",
         type=str,
-        default="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/ligpargen-image/LPG.sif",
-        help="Path to the .sif file for LigParGen (default: /storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/ligpargen-image/LPG.sif)"
+        default="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/ligpargen-image/LPG.sif",
+        help="Path to the .sif file for LigParGen (default: /storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/MD_Workflow/force_field/OPLS/ligpargen-image/LPG.sif)"
     )
     parser.add_argument(
         "-w",
@@ -73,9 +73,9 @@ def parser():
 
     return molecule_map, conditions, sif_file, water_model
 
-def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_models_path="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/water_models"):
+def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_models_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/water_models"):
     mol_dir = f"{molecule}"
-    library_dir = "/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/il_xml_library/IL/2009IL/XML"
+    library_dir = "/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/il_xml_library/IL/2009IL/XML"
     library_xml_file = os.path.join(library_dir, f"{molecule}.xml")
     library_pdb_file = os.path.join(library_dir, f"{molecule}.pdb")
     if molecule != "HOH":
@@ -101,7 +101,7 @@ def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_
         pdb_file = shutil.copy(pdb_file, f"{molecule}.pdb")
     return xml_file, pdb_file
 
-def gather_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/XML_REFORMAT"):
+def gather_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/XML_REFORMAT"):
     cmd = f"python {os.path.join(script_path,'LPG_reformat.py')} --xml_files {' '.join(xml_files)} --output {output_dir}; ls"
     subprocess.run(cmd, shell=True)
     output = glob.glob(str(Path(output_dir) / "*_sorted.xml"))
@@ -177,7 +177,7 @@ def create_topology(molecules, num_molecules, target_density=800, system_dir = "
     topology.to_file(system_file_path)
     return system_file_path
 
-def create_job(system_pdb_path, temp, all_xml, job_dir, slurm_job_name, template_dir="/storage/home/hhive1/sparmar32/projects/HTMD/jobs/templates"):
+def create_job(system_pdb_path, temp, all_xml, job_dir, slurm_job_name, template_dir="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/jobs/templates"):
     """
     Creates job-specific SLURM scripts and updates parameters.
     """

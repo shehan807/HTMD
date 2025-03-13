@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -A hive-jmcdaniel43
+#SBATCH -A gts-jmcdaniel43-chemx
 #SBATCH --job-name=###SLT_ID###_PTFA
 #SBATCH --time=72:00:00
 #SBATCH -N1 --gres=gpu:V100:1 --gres-flags=enforce-binding 
 #SBATCH --mem-per-gpu=32G
-#SBATCH --partition=hive-gpu
+#SBATCH --partition=inferno
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=parmar@gatech.edu
 #SBATCH --output=energies.%x-%j
@@ -18,7 +18,7 @@ module load anaconda3
 # fill this in with your OpenMM conda environment
 source activate openmm_8.2
 
-SCRIPT_DIR="/storage/home/hhive1/sparmar32/projects/HTMD/simulation/thermodynamic_integration/TI_OPLS"
+SCRIPT_DIR="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/simulation/thermodynamic_integration/TI_OPLS"
 
 export TEMP=300
 export SLT_ID=###SLT_ID###
@@ -30,10 +30,10 @@ export n_deriv=######
 export n_step=######
 
 
-export FFDIR="/storage/hive/project/chem-mcdaniel/sparmar32/HTMD/force_field/OPLS/example_lcst/p4444_tfa_water/ffdir"
+export FFDIR="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/example_lcst/p4444_tfa_water/ffdir"
 export RES_FILE="$FFDIR/TFA_sorted_residues.xml:$FFDIR/HOH_sorted_residues.xml:$FFDIR/TBP_sorted_residues.xml"
 export FF_FILE="$FFDIR/TFA_sorted.xml:$FFDIR/HOH_sorted.xml:$FFDIR/TBP_sorted.xml"
-export PDB_FILE="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/example_lcst/p4444_tfa_water/0.05/300/simulation_output/npt_final-4.pdb"
+export PDB_FILE="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/example_lcst/p4444_tfa_water/0.05/300/simulation_output/npt_final-4.pdb"
 
 python $SCRIPT_DIR/run_TI_LJ.py\
 	--delta_lambda=$delta_lambda\

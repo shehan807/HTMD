@@ -14,7 +14,7 @@ final_file="$PWD/E.txt"
 module load anaconda3 
 source activate MDAnalysis
 
-SCRIPT_DIR="/storage/home/hhive1/sparmar32/projects/HTMD/simulation/thermodynamic_integration/TI_OPLS"
+SCRIPT_DIR="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/simulation/HTMD/simulation/thermodynamic_integration/TI_OPLS"
 
 python3 $SCRIPT_DIR/integrate_dEdlambda.py "$PWD/electrostatic/dE_dlambda.log" | tail -n 1 | awk '{print $1}' >> $temp_file
 python3 $SCRIPT_DIR/integrate_dEdlambda.py "$PWD/repulsion/dE_dlambda.log" | tail -n 1 | awk '{print $1}' >> $temp_file
