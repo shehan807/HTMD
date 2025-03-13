@@ -33,7 +33,7 @@ def OPLS_LJ(system):
             nonbonded_force.setExceptionParameters(i, p1, p2, q, sig14, eps)
     return system
 
-("Printing ITER environment var:" + str(os.environ['ITER']))
+print("Printing ITER environment var:" + str(os.environ['ITER']))
 cwd = os.getcwd()
 ITER = int(os.environ['ITER'])
 TEMP = int(os.environ['TEMP'])

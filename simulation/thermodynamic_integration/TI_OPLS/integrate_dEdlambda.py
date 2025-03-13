@@ -68,10 +68,15 @@ for i in range(len(dEdlambda_data)):
          avg_shell.append(avg)
     avg_dEdlambda.append(avg_shell)
 
+
+avg_dEdlambda[0]=avg_dEdlambda[0][::1]
+lambda_values[0]=lambda_values[0][::1]
+print(avg_dEdlambda)
+print(lambda_values)
 # now integrate
 for i in range(len(dEdlambda_data)):
     print( "integral(0,1) dE_dlambda : " , i+1 )
-    delta_E = integrate.simps(avg_dEdlambda[i], lambda_values[i] )
+    delta_E = integrate.simpson(avg_dEdlambda[i], lambda_values[i] )
     # negative sign because data is input lambda 1 ==> lambda 0,
     # and we want integral 0 ==> 1
     delta_E = -delta_E
