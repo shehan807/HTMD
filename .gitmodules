@@ -7,3 +7,12 @@
 [submodule "simulation/thermodynamic_integration/Thermodynamic_Integration"]
 	path = simulation/thermodynamic_integration/Thermodynamic_Integration
 	url = git@github.com:shehan807/Thermodynamic_Integration.git
+[submodule "force_field/OPLS/il_xml_library/IL"]
+	path = force_field/OPLS/il_xml_library/IL
+	url = git@github.com:shehan807/IL.git
+[submodule "force_field/OPLS/il_xml_library/ilff"]
+	path = force_field/OPLS/il_xml_library/ilff
+	url = https://github.com/agiliopadua/ilff.git
+[submodule "force_field/OPLS/il_xml_library/fftool"]
+	path = force_field/OPLS/il_xml_library/fftool
+	url = https://github.com/agiliopadua/fftool.git

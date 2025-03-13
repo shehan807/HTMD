@@ -18,7 +18,7 @@
  <HarmonicAngleForce>
   <Angle class1="HW" class2="OW" class3="HW" angle="1.91061193216" k="836.8"/>
  </HarmonicAngleForce>
- <NonbondedForce coulomb14scale="0.833333" lj14scale="0.5">
+ <NonbondedForce coulomb14scale="0.5" lj14scale="0.5">
   <Atom type="spce-O" charge="-0.8476" sigma="0.31657195050398818" epsilon="0.6497752"/>
   <Atom type="spce-H" charge="0.4238" sigma="1" epsilon="0"/>
  </NonbondedForce>

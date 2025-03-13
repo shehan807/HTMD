@@ -1,0 +1,165 @@
+<ForceField>
+<AtomTypes>
+  <Type name="swm4ndp-O"  class="OW" element="O" mass="0.0"/>
+  <Type name="swm4ndp-H"  class="HW" element="H" mass="0.0"/>
+  <Type name="swm4ndp-M"  class="MW" mass="0"/>
+  <Type name="swm4ndp-OD" class="OWD" mass="0.0"/>
+  <Type name="SAL-C00" class="Carom"  element="C" mass="12.011" />
+  <Type name="SAL-C01" class="Carom"  element="C" mass="12.011" />
+  <Type name="SAL-C02" class="Carom"  element="C" mass="12.011" />
+  <Type name="SAL-C03" class="Ccbxl"  element="C" mass="12.011" />
+  <Type name="SAL-O04" class="Ocbxl"  element="O" mass="15.999" />
+  <Type name="SAL-O05" class="Ocbxl"  element="O" mass="15.999" />
+  <Type name="SAL-O06" class="Oalc"   element="O" mass="15.999" />
+  <Type name="SAL-C07" class="Carom"  element="C" mass="12.011" />
+  <Type name="SAL-C08" class="Carom"  element="C" mass="12.011" />
+  <Type name="SAL-C09" class="Carom"  element="C" mass="12.011" />
+  <Type name="SAL-H0A" class="Harom"  element="H" mass="1.008" />
+  <Type name="SAL-H0B" class="Harom"  element="H" mass="1.008" />
+  <Type name="SAL-H0C" class="Harom"  element="H" mass="1.008" />
+  <Type name="SAL-H0D" class="Harom"  element="H" mass="1.008" />
+  <Type name="SAL-H0E" class="Halc"   element="H" mass="1.008" />
+  <Type name="SAL-DC00" class="Sh" mass="0.0"/>
+  <Type name="SAL-DC01" class="Sh" mass="0.0"/>
+  <Type name="SAL-DC02" class="Sh" mass="0.0"/>
+  <Type name="SAL-DC03" class="Sh" mass="0.0"/>
+  <Type name="SAL-DO04" class="Sh" mass="0.0"/>
+  <Type name="SAL-DO05" class="Sh" mass="0.0"/>
+  <Type name="SAL-DO06" class="Sh" mass="0.0"/>
+  <Type name="SAL-DC07" class="Sh" mass="0.0"/>
+  <Type name="SAL-DC08" class="Sh" mass="0.0"/>
+  <Type name="SAL-DC09" class="Sh" mass="0.0"/>
+</AtomTypes>
+<Residues>
+  <Residue name="HOH">
+   <Atom name="O" type="swm4ndp-O"/>
+   <Atom name="H1" type="swm4ndp-H"/>
+   <Atom name="H2" type="swm4ndp-H"/>
+   <Atom name="M" type="swm4ndp-M"/>
+   <Atom name="OD" type="swm4ndp-OD"/>
+   <VirtualSite type="average3" index="3" atom1="0" atom2="1" atom3="2" weight1="0.589781071" weight2="0.2051094645" weight3="0.2051094645"/>
+   <Bond from="0" to="1"/>
+   <Bond from="0" to="2"/>
+  </Residue>
+  <Residue name="SAL">
+   <Atom name="C00" type="SAL-C00" />
+   <Atom name="C01" type="SAL-C01" />
+   <Atom name="C02" type="SAL-C02" />
+   <Atom name="C03" type="SAL-C03" />
+   <Atom name="O04" type="SAL-O04" />
+   <Atom name="O05" type="SAL-O05" />
+   <Atom name="O06" type="SAL-O06" />
+   <Atom name="C07" type="SAL-C07" />
+   <Atom name="C08" type="SAL-C08" />
+   <Atom name="C09" type="SAL-C09" />
+   <Atom name="H0A" type="SAL-H0A" />
+   <Atom name="H0B" type="SAL-H0B" />
+   <Atom name="H0C" type="SAL-H0C" />
+   <Atom name="H0D" type="SAL-H0D" />
+   <Atom name="H0E" type="SAL-H0E" />
+   <Atom name="DC00" type="SAL-DC00"/>
+   <Atom name="DC01" type="SAL-DC01"/>
+   <Atom name="DC02" type="SAL-DC02"/>
+   <Atom name="DC03" type="SAL-DC03"/>
+   <Atom name="DO04" type="SAL-DO04"/>
+   <Atom name="DO05" type="SAL-DO05"/>
+   <Atom name="DO06" type="SAL-DO06"/>
+   <Atom name="DC07" type="SAL-DC07"/>
+   <Atom name="DC08" type="SAL-DC08"/>
+   <Atom name="DC09" type="SAL-DC09"/>
+   <Bond from="1" to="0" />
+   <Bond from="2" to="0" />
+   <Bond from="3" to="0" />
+   <Bond from="4" to="3" />
+   <Bond from="5" to="3" />
+   <Bond from="6" to="1" />
+   <Bond from="7" to="2" />
+   <Bond from="8" to="7" />
+   <Bond from="9" to="8" />
+   <Bond from="10" to="7" />
+   <Bond from="11" to="8" />
+   <Bond from="12" to="9" />
+   <Bond from="13" to="2" />
+   <Bond from="14" to="6" />
+   <Bond from="9" to="1" />
+  </Residue>
+</Residues>
+<NonbondedForce coulomb14scale="0" lj14scale="0">
+  <!--     epsilon zeroed out here, for SWM4-NDP epsilon="0.882573"   -->
+  <Atom type="swm4ndp-O" charge="1.71636" sigma="0.318395" epsilon="0.0"/>
+  <Atom type="swm4ndp-H" charge="0.55733" sigma="1" epsilon="0"/>
+  <Atom type="swm4ndp-M" charge="-1.11466" sigma="1" epsilon="0"/>
+  <Atom type="swm4ndp-OD" charge="-1.71636" sigma="1" epsilon="0"/>
+  <Atom type="SAL-C00" charge="0.82524" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DC00" charge="-1.14780" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-C01" charge="1.48118" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DC01" charge="-1.14780" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-C02" charge="1.20190" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DC02" charge="-1.14780" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-C03" charge="1.18681" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DC03" charge="-0.70970" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-O04" charge="0.25892" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DO04" charge="-0.89310" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-O05" charge="0.26424" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DO05" charge="-0.89310" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-O06" charge="0.28159" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DO06" charge="-0.81200" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-C07" charge="0.95289" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DC07" charge="-1.14780" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-C08" charge="1.01993" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DC08" charge="-1.14780" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-C09" charge="1.00690" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-DC09" charge="-1.14780" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-H0A" charge="0.05868" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-H0B" charge="0.06727" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-H0C" charge="0.02557" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-H0D" charge="0.12280" sigma="1.00000" epsilon="0.00000"/>
+  <Atom type="SAL-H0E" charge="0.44080" sigma="1.00000" epsilon="0.00000"/>
+</NonbondedForce>
+<DrudeForce>
+  <Particle type1="swm4ndp-OD" type2="swm4ndp-O" charge="-1.71636" polarizability="0.000978253" thole="1.3"/>
+  <Particle type1="SAL-DC00" type2="SAL-C00" charge="-1.1478" polarizability="0.00195233" thole="1"/>
+  <Particle type1="SAL-DC01" type2="SAL-C01" charge="-1.1478" polarizability="0.00195233" thole="1"/>
+  <Particle type1="SAL-DC02" type2="SAL-C02" charge="-1.1478" polarizability="0.00195233" thole="1"/>
+  <Particle type1="SAL-DC03" type2="SAL-C03" charge="-0.7097" polarizability="0.0007463" thole="1"/>
+  <Particle type1="SAL-DO04" type2="SAL-O04" charge="-0.8931" polarizability="0.001182" thole="1"/>
+  <Particle type1="SAL-DO05" type2="SAL-O05" charge="-0.8931" polarizability="0.001182" thole="1"/>
+  <Particle type1="SAL-DO06" type2="SAL-O06" charge="-0.812" polarizability="0.0009897" thole="1"/>
+  <Particle type1="SAL-DC07" type2="SAL-C07" charge="-1.1478" polarizability="0.00195233" thole="1"/>
+  <Particle type1="SAL-DC08" type2="SAL-C08" charge="-1.1478" polarizability="0.00195233" thole="1"/>
+  <Particle type1="SAL-DC09" type2="SAL-C09" charge="-1.1478" polarizability="0.00195233" thole="1"/>
+</DrudeForce>
+ <CustomNonbondedForce energy="A*exBr - f6*C6/(r^6) - f8*C8/(r^8) - f10*C10/(r^10) - f12*C12/(r^12);
+    A=Aex-Ael-Ain-Adh;
+    Aex=sqrt(Aexch1*Aexch2); Ael=sqrt(Aelec1*Aelec2); Ain=sqrt(Aind1*Aind2); Adh=sqrt(Adhf1*Adhf2);
+    f12 = f10 - exBr*( (1/39916800)*(Br^11)*(1 + Br/12) );
+    f10 = f8 - exBr*( (1/362880)*(Br^9)*(1 + Br/10 ) );
+    f8 = f6 - exBr*( (1/5040)*(Br^7)*(1 + Br/8 ) );
+    f6 = 1 - exBr*(1 + Br * (1 + (1/2)*Br*(1 + (1/3)*Br*(1 + (1/4)*Br*(1 + (1/5)*Br*(1 + (1/6)*Br ) ) )  ) ) );
+    exBr = exp(-Br);
+    Br = B*r;
+    B=(Bexp1+Bexp2)*Bexp1*Bexp2/(Bexp1^2 + Bexp2^2);
+    C6=sqrt(C61*C62); C8=sqrt(C81*C82); C10=sqrt(C101*C102); C12=sqrt(C121*C122)"
+    bondCutoff="3">
+  <PerParticleParameter name="Aexch"/>
+  <PerParticleParameter name="Aelec"/>
+  <PerParticleParameter name="Aind"/>
+  <PerParticleParameter name="Adhf"/>
+  <PerParticleParameter name="Bexp"/>
+  <PerParticleParameter name="C6"/>
+  <PerParticleParameter name="C8"/>
+  <PerParticleParameter name="C10"/>
+  <PerParticleParameter name="C12"/>
+  <Atom type="swm4ndp-O" Aexch="154905" Aelec="77452" Aind="21529" Adhf="0.0" Bexp="36.84974" C6="0.000456" C8="3.67376E-05" C10="2.87553E-06" C12="1.81911E-07"/>
+  <Atom type="swm4ndp-H" Aexch="1575" Aelec="0.0" Aind="0.0" Adhf="0.0" Bexp="58.582" C6="2.6E-06" C8="1.3198E-07" C10="1.87942E-08" C12="1.30988E-09"/>
+  <Atom type="swm4ndp-M" Aexch="55923" Aelec="13653" Aind="893" Adhf="788" Bexp="32.12541" C6="0.000841" C8="3.8005E-05" C10="1.76105E-06" C12="6.50111E-08"/>
+  <Atom type="swm4ndp-OD" Aexch="0" Aelec="0" Aind="0" Adhf="0" Bexp="1" C6="0" C8="0" C10="0" C12="0"/>
+  <Atom class="Sh"    Aexch="0" Aelec="0" Aind="0" Adhf="0" Bexp="100" C6="0" C8="0" C10="0" C12="0"/>
+  <Atom class="Ocbxl" Aexch="378072.0"     Aelec="167926.8"     Aind="35444.4"     Adhf="31899.6"     Bexp="37.795"   C6="0.00131913" C8="5.7131e-05" C10="4.5804e-06" C12="2.2089e-07"/>
+  <Atom class="Ccbxl" Aexch="263600.0"     Aelec="112896.0"     Aind="12.0"        Adhf="2837.0"      Bexp="34.384"   C6="7.7287e-04" C8="2.3492e-05" C10="2.7539e-06" C12="1.0237e-07"/>
+  <Atom class="Carom" Aexch="423935.10000" Aelec="204171.80000" Aind="18740.50000" Adhf="44967.60000" Bexp="34.38400" C6="1.6774e-03" C8="6.6332e-05" C10="6.4248e-06" C12="2.6799e-07"/>
+  <Atom class="Harom" Aexch="10600.40000"  Aelec="2749.00000"   Aind="891.60000"   Adhf="971.10000"   Bexp="37.77600" C6="1.3440e-04" C8="7.0560e-06" C10="5.1863e-07" C12="0.0000e+00"/>
+  <Atom class="Oalc"  Aexch="199073.30000" Aelec="107480.10000" Aind="26255.00000" Adhf="11095.00000" Bexp="37.79500" C6="8.4127e-04" C8="5.1672e-05" C10="3.6503e-06" C12="1.9529e-07"/>
+  <Atom class="Halc"  Aexch="1182.30000"   Aelec="428.20000"    Aind="91.90000"    Adhf="223.20000"  Bexp="31.48300" C6="9.3790e-05" C8="2.6070e-06" C10="4.1510e-07" C12="0.0000e+00"/>
+ </CustomNonbondedForce>
+</ForceField>

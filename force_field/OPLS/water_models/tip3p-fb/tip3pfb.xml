@@ -22,7 +22,7 @@
  <HarmonicAngleForce>
   <Angle class1="HW" class2="OW" class3="HW" angle="1.88754640288" k="836.8"/>
  </HarmonicAngleForce>
- <NonbondedForce coulomb14scale="0.833333" lj14scale="0.5">
+ <NonbondedForce coulomb14scale="0.5" lj14scale="0.5">
   <Atom type="tip3p-fb-O" charge="-0.848448690103" sigma="0.317796456355" epsilon="0.652143528104" />
   <Atom type="tip3p-fb-H" charge="0.4242243450515" sigma="1" epsilon="0" />
  </NonbondedForce>

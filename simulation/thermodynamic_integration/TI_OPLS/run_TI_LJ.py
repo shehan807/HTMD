@@ -1,10 +1,10 @@
 from __future__ import print_function
 import logging
 import os
-from simtk.openmm.app import *
-from simtk.openmm import *
-import simtk.openmm as mm
-from simtk.unit import *
+from openmm.app import *
+from openmm import *
+import openmm as mm
+from openmm.unit import *
 import sys
 from time import gmtime, strftime
 from datetime import datetime
@@ -12,24 +12,33 @@ from datetime import datetime
 #from sapt_exclusions import *
 #******** this contains the Thermodynamic Integration subroutines 
 from TI_classes import * 
+import MDAnalysis as mda
+import numpy as np
+import argparse
 
 cwd = os.getcwd()
 TEMP = int(os.environ['TEMP'])
 SLT_ID = int(os.environ['SLT_ID'])
-RES_FILE = str(os.environ['RES_FILE'])
 PDB_FILE = str(os.environ['PDB_FILE'])
+RES_FILE = str(os.environ['RES_FILE'])
 FF_FILE  = str(os.environ['FF_FILE'])
+
+if ":" in RES_FILE: 
+    RES_FILE = RES_FILE.split(":")
+if ":" in FF_FILE: 
+    FF_FILE = FF_FILE.split(":")
+
 # Define the argument parser
 parser = argparse.ArgumentParser(description="Thermodynamic Integration Script")
 
 # Add optional arguments with default values
 parser.add_argument("--delta_lambda", type=float, default=0.1, 
                     help="Difference between consecutive lambda values for TI (default: 0.1)")
-parser.add_argument("--n_equil", type=int, default=10000, 
-                    help="Number of equilibration steps after each change of Hamiltonian (default: 10000)")
-parser.add_argument("--n_deriv", type=int, default=500, 
+parser.add_argument("--n_equil", type=int, default=30000, 
+                    help="Number of equilibration steps after each change of Hamiltonian (default: 30000 (30 ps))")
+parser.add_argument("--n_deriv", type=int, default=1000, 
                     help="Number of derivatives to sample for each lambda value (default: 500)")
-parser.add_argument("--n_step", type=int, default=500, 
+parser.add_argument("--n_step", type=int, default=1000, 
                     help="Number of MD steps between derivative sampling (default: 500)")
 
 # Parse arguments
@@ -113,7 +122,17 @@ derivativefile_name='dE_dlambda.log'
 ffxml_nopol=FF_FILE
 resxml_nopol=RES_FILE
 
-pdbstart=PDB_FILE
+# check if pdb file has distinct resids (for easier post-processing later)
+u = mda.Universe(PDB_FILE)
+if len(set(u.residues.resids)) != len(u.residues.resids):
+    print("Rewriting PDB to have correct resids.")
+    for i, res in enumerate(u.residues, start=1):
+        res.resid = i
+    PDB_FILE_PRCS = PDB_FILE.replace(".pdb", "_resIDs.pdb")
+    u.atoms.write(PDB_FILE_PRCS)
+    pdbstart=PDB_FILE_PRCS
+else:
+    pdbstart=PDB_FILE
 
 temperature=TEMP*kelvin
 pressure = 1.0*atmosphere
@@ -191,12 +210,17 @@ for interaction_type in TI_jobs:
     pdb = PDBFile(pdbstart)
     integrator = LangevinIntegrator(temperature, 1/picosecond, 0.001*picoseconds)
 
-    pdb.topology.loadBondDefinitions( resxml_local )
-    pdb.topology.createStandardBonds();
+    print(ffxml_local, resxml_local)
+    for i in range(len(resxml_local)):
+        pdb.topology.loadBondDefinitions(resxml_local[i])
+        pdb.topology.createStandardBonds();
 
     # use positions object, this is either initial positions or positions from previous loop
     modeller = Modeller(pdb.topology, start_positions)
-    forcefield = ForceField( ffxml_local )
+    
+    forcefield = ForceField(ffxml_local[0]) # FF_FILE
+    for i, xml in enumerate(ffxml_local[1:]):
+        forcefield.loadFile(xml)
     modeller.addExtraParticles(forcefield)
 
     # create system

@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -A gts-jmcdaniel43-chemx
+#SBATCH -A hive-jmcdaniel43
 #SBATCH --job-name=###JOB_NAME###
-#SBATCH --time=72:00:00
+#SBATCH --time=12:00:00
 #SBATCH -N1 --gres=gpu:V100:1 --gres-flags=enforce-binding 
 #SBATCH --mem-per-gpu=32G
-#SBATCH -qinferno
+#SBATCH --partition=hive-gpu
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=parmar@gatech.edu
 #SBATCH --output=energies.%x-%j
@@ -16,9 +16,9 @@ module load cuda
 module load anaconda3
 
 # fill this in with your OpenMM conda environment
-source activate openmm_7.7
+source activate openmm_8.2
 
-SCRIPT_DIR="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/simulation"
+SCRIPT_DIR="/storage/home/hhive1/sparmar32/projects/HTMD/simulation"
 
 python ${SCRIPT_DIR}/run_openmm-opls.py  &>> energy_traj
 

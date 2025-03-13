@@ -1,7 +1,7 @@
 import sys, os
-from simtk.openmm.app import *
-from simtk.openmm import *
-from simtk.unit import *
+from openmm.app import *
+from openmm import *
+from openmm.unit import *
 from sys import stdout
 def OPLS_LJ(system):
     forces = {system.getForce(index).__class__.__name__: system.getForce(
@@ -33,13 +33,17 @@ def OPLS_LJ(system):
             nonbonded_force.setExceptionParameters(i, p1, p2, q, sig14, eps)
     return system
 
-("Printing ITER environment var:" + str(os.environ['ITER']))
+print("Printing ITER environment var:" + str(os.environ['ITER']))
 cwd = os.getcwd()
 ITER = int(os.environ['ITER'])
 TEMP = int(os.environ['TEMP'])
-RES_FILE = str(os.environ['RES_FILE'])
 PDB_FILE = str(os.environ['PDB_FILE'])
+RES_FILE = str(os.environ['RES_FILE'])
 FF_FILE  = str(os.environ['FF_FILE'])
+if ":" in RES_FILE: 
+    RES_FILE = RES_FILE.split(":")
+if ":" in FF_FILE: 
+    FF_FILE = FF_FILE.split(":")
 dcd_file = "md_npt-{i}.dcd".format(i=ITER)
 chk_file = "md_npt-{i}.chk".format(i=ITER)
 prev_chk_file = "md_npt-{i}.chk".format(i=ITER-1)
@@ -54,17 +58,17 @@ pressure = 1.0*atmosphere
 friction = 1/picosecond 
 timestep = 0.001*picoseconds
 barofreq = 100
-simulation_time_ns = 5
+simulation_time_ns = 15
 freq_traj_output_ps = 30
 
 # input/output files
-residue_file = RES_FILE
 strdir = 'simulation_output/'
 if not os.path.exists(strdir):
     os.makedirs(strdir)
 
 # first load bonddefinitions into Topology
-Topology().loadBondDefinitions(residue_file)
+for i in range(len(RES_FILE)):
+    Topology().loadBondDefinitions(RES_FILE[i])
 
 # integrator
 integ_md = LangevinIntegrator(temperature, friction, timestep)
@@ -74,7 +78,10 @@ pdb = PDBFile(PDB_FILE) # PDB_FILE
 modeller = Modeller(pdb.topology, pdb.positions)
 
 # create forcefield from *.xml force field file, and add extra particles (as needed) with modeller
-forcefield = ForceField(FF_FILE) # FF_FILE
+forcefield = ForceField(FF_FILE[0]) # FF_FILE
+for i, xml in enumerate(FF_FILE[1:]):
+    forcefield.loadFile(xml)
+
 modeller.addExtraParticles(forcefield)
 
 # create system

@@ -32,7 +32,7 @@ def plt_metric(values, output="./"):
     ax.tick_params(direction='in', length=8, width=border_width, which='major', top=True, right=True)
     ax.tick_params(direction='in', length=4, width=border_width, which='minor', top=True, right=True)
 
-    ax.set_xlabel(r'Excess Chemical Potential, $-\Delta G_{absorption}^{H_2O}$ (kcal/mol)', fontsize=axis_fs)
+    ax.set_xlabel(r'Excess Chemical Potential, $\Delta \mu_{absorption}^{H_2O}$ (kcal/mol)', fontsize=axis_fs)
     ax.set_ylabel(r'Probability', fontsize=axis_fs)
 
     num_bins = 25  # Choose an appropriate number of bins
@@ -52,6 +52,8 @@ def plt_metric(values, output="./"):
     #plt.legend()
 
     ax.set_xlim((min(values),max(values)))
+    ax.set_title(r'$\mu_{\mathrm{water}} = -6.09 \text{kcal/mol}$', fontsize=axis_fs)
+
     plt.savefig(os.path.join(output,"hist.png"))
 
 
@@ -63,7 +65,9 @@ if __name__ == "__main__":
     df = pd.read_csv(csv_file)
     
     # Extract the kcal/mol values as a list
-    energy_values = df['kcal_per_mol'].abs().tolist()
+    df['kcal_per_mol'] = pd.to_numeric(df['kcal_per_mol'], errors='coerce')
+    energy_values = (df['kcal_per_mol'] + 6.09).tolist()
+    #energy_values = (df['kcal_per_mol'] - (-6.09)).tolist()
     
     # Output directory for the plot
     output_dir = "./"

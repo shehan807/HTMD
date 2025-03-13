@@ -7,12 +7,14 @@ Usage:
 """
 import os
 import argparse
+import glob
 import pandas as pd
 import yaml
 import subprocess
 import shutil 
 import mdtraj 
 from tabulate import tabulate
+from pathlib import Path 
 
 from openff.toolkit import ForceField, Molecule, Topology
 from openff.units import unit
@@ -45,8 +47,8 @@ def parser():
         "-s",
         "--sif_file",
         type=str,
-        default="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/ligpargen-image/LPG.sif",
-        help="Path to the .sif file for LigParGen (default: /storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/ligpargen-image/LPG.sif)"
+        default="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/ligpargen-image/LPG.sif",
+        help="Path to the .sif file for LigParGen (default: /storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/ligpargen-image/LPG.sif)"
     )
     parser.add_argument(
         "-w",
@@ -71,18 +73,26 @@ def parser():
 
     return molecule_map, conditions, sif_file, water_model
 
-def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_models_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/water_models"):
+def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_models_path="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/water_models"):
     mol_dir = f"{molecule}"
+    library_dir = "/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/il_xml_library/IL/2009IL/XML"
+    library_xml_file = os.path.join(library_dir, f"{molecule}.xml")
+    library_pdb_file = os.path.join(library_dir, f"{molecule}.pdb")
     if molecule != "HOH":
-        cmd = f"apptainer exec --bind $(pwd):/opt/output {sif_file} bash -c 'ligpargen -n {molecule} -p {molecule} -r {molecule} -c {charge} -o 3 -cgen CM1A -s \"{smiles}\"'"
-        subprocess.run(cmd, shell=True)
-        xml_file = os.path.join(mol_dir, f"{molecule}.openmm.xml")
-        pdb_file = os.path.join(mol_dir, f"{molecule}.openmm.pdb")
+        if os.path.isfile(library_xml_file) and os.path.isfile(library_pdb_file):
+            print(f"Found {molecule} in library; using existing XML and PDB.")
+            xml_file = shutil.copy(library_xml_file, f"{molecule}.xml")
+            pdb_file = shutil.copy(library_pdb_file, f"{molecule}.pdb") 
+        else:
+            cmd = f"apptainer exec --bind $(pwd):/opt/output {sif_file} bash -c 'ligpargen -n {molecule} -p {molecule} -r {molecule} -c {charge} -o 3 -cgen CM1A -s \"{smiles}\"'"
+            subprocess.run(cmd, shell=True)
+            xml_file = os.path.join(mol_dir, f"{molecule}.openmm.xml")
+            pdb_file = os.path.join(mol_dir, f"{molecule}.openmm.pdb")
 
-        xml_file = shutil.move(xml_file, f"{molecule}.xml")
-        pdb_file = shutil.move(pdb_file, f"{molecule}.pdb")
-        
-        shutil.rmtree(mol_dir)
+            xml_file = shutil.move(xml_file, f"{molecule}.xml")
+            pdb_file = shutil.move(pdb_file, f"{molecule}.pdb")
+            
+            shutil.rmtree(mol_dir)
     elif molecule == "HOH":
         xml_file = os.path.join(water_models_path, water_model, f"{water_model}.xml")
         pdb_file = os.path.join(water_models_path, water_model, f"{water_model}.pdb")
@@ -91,14 +101,10 @@ def run_ligpargen(molecule, charge, smiles, sif_file, water_model="tip3p",water_
         pdb_file = shutil.copy(pdb_file, f"{molecule}.pdb")
     return xml_file, pdb_file
 
-def merge_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hcoda1/4/sparmar32/p-jmcdaniel43-0/scripts/HTMD/force_field/OPLS/XML_REFORMAT"):
+def gather_xml_files(xml_files, output_dir="ffdir", script_path="/storage/home/hhive1/sparmar32/projects/HTMD/force_field/OPLS/XML_REFORMAT"):
     cmd = f"python {os.path.join(script_path,'LPG_reformat.py')} --xml_files {' '.join(xml_files)} --output {output_dir}; ls"
     subprocess.run(cmd, shell=True)
-    base_names = sorted([
-        os.path.splitext(os.path.basename(file))[0]
-        for file in xml_files
-    ])
-    output = os.path.join(output_dir, "_".join(base_names) + ".xml")
+    output = glob.glob(str(Path(output_dir) / "*_sorted.xml"))
     return output
 
 def molar_mass(mol):
@@ -109,8 +115,8 @@ def molar_mass(mol):
 
 def get_num_molecules(comp1, comp2, conc, map):
     
-    molecules1 = [Molecule.from_smiles(map[comp]["SMILES"]) for comp in comp1]
-    molecules2 = [Molecule.from_smiles(map[comp]["SMILES"]) for comp in comp2]
+    molecules1 = [Molecule.from_smiles(map[comp]["SMILES"], allow_undefined_stereo=True) for comp in comp1]
+    molecules2 = [Molecule.from_smiles(map[comp]["SMILES"], allow_undefined_stereo=True) for comp in comp2]
 
     mass1 = [molar_mass(Molecule) for Molecule in molecules1]
     mass2 = [molar_mass(Molecule) for Molecule in molecules2]
@@ -121,16 +127,19 @@ def get_num_molecules(comp1, comp2, conc, map):
     if sum(mass1) > sum(mass2):
         if conc == 0.0:
             n1 = 0
+            n2 = 200
         else:
             n1 = 200
-        n2 = int((1 / sum(mass2)) * (n1*sum(mass1) / conc - n1*sum(mass1)))
+            n2 = int((1 / sum(mass2)) * (n1*sum(mass1) / conc - n1*sum(mass1)))
     elif sum(mass2) > sum(mass1):
         if (1-conc) == 0.0:
             n2 = 0
+            n1 = 200
         else:
             n2 = 200
-        print(mass1, mass2, n2)
-        n1 = int((1 / sum(mass1)) * ((n2*sum(mass2)) / (1-conc) - n2*sum(mass2)) )
+            n1 = int((1 / sum(mass1)) * ((n2*sum(mass2)) / (1-conc) - n2*sum(mass2)) )
+    print("%%%%% MASS AND NUMBER %%%%%")
+    print(mass1, mass2, n1, n2)
     
     num_molecules1 = len(molecules1) * [n1]
     num_molecules2 = len(molecules2) * [n2]
@@ -168,7 +177,7 @@ def create_topology(molecules, num_molecules, target_density=800, system_dir = "
     topology.to_file(system_file_path)
     return system_file_path
 
-def create_job(system_pdb_path, temp, merged_xml, job_dir, slurm_job_name, template_dir="/storage/coda1/p-jmcdaniel43/0/sparmar32/scripts/HTMD/jobs/templates"):
+def create_job(system_pdb_path, temp, all_xml, job_dir, slurm_job_name, template_dir="/storage/home/hhive1/sparmar32/projects/HTMD/jobs/templates"):
     """
     Creates job-specific SLURM scripts and updates parameters.
     """
@@ -201,9 +210,11 @@ def create_job(system_pdb_path, temp, merged_xml, job_dir, slurm_job_name, templ
         wrapper_content = f.read()
     # Replace placeholders in the SLURM script
     wrapper_content = wrapper_content.replace("###TEMP###", str(temp))
-    wrapper_content = wrapper_content.replace("###RES_FILE###", merged_xml.replace(".xml", "_residues.xml"))
+
+    residue_xmls = [xml.replace(".xml", "_residues.xml") for xml in all_xml]
+    wrapper_content = wrapper_content.replace("###RES_FILE###", ":".join(residue_xmls))
     wrapper_content = wrapper_content.replace("###PDB_FILE###", system_pdb_path)
-    wrapper_content = wrapper_content.replace("###FF_FILE###", merged_xml)
+    wrapper_content = wrapper_content.replace("###FF_FILE###", ":".join(all_xml))
     # Write the updated SLURM script to the job directory
     with open(job_wrapper, "w") as f:
         f.write(wrapper_content)
@@ -258,8 +269,8 @@ def main():
             xmls.append(mol_xml)
             pdbs.append(mol_pdb)
         print(f"xmls: {xmls}")
-        merged_xml = merge_xml_files(xmls)
-        print(f"generated {merged_xml}\n")
+        xmls = list(set(xmls))
+        all_xml = gather_xml_files(xmls)
 
         # check if ffdir exists in mixture "name" directory (i.e., save only one copy of ff)
         name_dir  = os.path.join(os.getcwd(), str(name))
@@ -307,7 +318,9 @@ def main():
                 # copy system.pdb to dir
                 
                 slurm_job_name = f"{name}_{conc}_{temp}"
-                create_job(system_pdb_path, temp, os.path.join(name_dir, merged_xml), dir, slurm_job_name)
+                all_xml = [os.path.join(name_dir, xml) for xml in all_xml] 
+                
+                create_job(system_pdb_path, temp, all_xml, dir, slurm_job_name)
         _ = [os.remove(x) for x in xmls if os.path.isfile(x)]
         _ = [os.remove(p) for p in pdbs if os.path.isfile(p)]
         shutil.rmtree("ffdir")

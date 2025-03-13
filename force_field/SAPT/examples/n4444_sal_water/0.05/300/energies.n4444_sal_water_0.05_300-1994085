@@ -1,0 +1,25 @@
+---------------------------------------
+Begin Slurm Prolog: Feb-11-2025 22:31:18
+Job ID:    1994085
+User ID:   sparmar32
+Account:   hive-jmcdaniel43
+Job name:  n4444_sal_water_0.05_300
+Partition: hive-gpu-short
+QOS:       normal
+---------------------------------------
+atl1-1-01-018-13-0.pace.gatech.edu
+Done    Tue Feb 11 10:31:21 PM EST 2025
+Elapsed time: 483147:31:21 (hh:mm:ss)
+Elapsed time: 1739331081 seconds
+---------------------------------------
+Begin Slurm Epilog: Feb-11-2025 22:31:21
+Job ID:        1994085
+User ID:       sparmar32
+Account:       hive-jmcdaniel43
+Job name:      n4444_sal_water_0.05_300
+Resources:     cpu=1,gres/gpu:v100=1,mem=32G,node=1
+Rsrc Used:     cput=00:00:03,vmem=0,walltime=00:00:03,mem=36832K,energy_used=0
+Partition:     hive-gpu-short
+QOS:           normal
+Nodes:         atl1-1-01-018-13-0
+---------------------------------------
