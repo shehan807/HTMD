@@ -15,6 +15,8 @@ import shutil
 import mdtraj 
 from tabulate import tabulate
 from pathlib import Path 
+from itertools import chain 
+import numpy as np 
 
 from openff.toolkit import ForceField, Molecule, Topology
 from openff.units import unit
@@ -112,6 +114,121 @@ def molar_mass(mol):
     for atom in mol.atoms:
         mass += atom.mass
     return mass
+
+def get_num_molecules_multi(components, concentrations, map, n_max = 200, max_iter = 100, n_max_limit=500):
+    
+    if abs(sum(concentrations) - 1.0) > 1e-10:
+        raise ValueError(f"Concentrations must sum to 1.0, got {sum(concentrations)}")
+
+    if len(components) != len(concentrations):
+        raise ValueError(f"Number of component types ({len(components_list)}) must match number of concentrations ({len(concentrations)})")
+    
+    molecules = [] 
+    masses = []
+
+    for comp in components:
+        molecule = [Molecule.from_smiles(map[sub_comp]["SMILES"], allow_undefined_stereo=True) for sub_comp in comp]
+        mass = [molar_mass(Molecule) for Molecule in molecule]
+        
+        molecules.append(molecule)
+        masses.append(mass) 
+    
+    print(masses, concentrations, components)
+    print(zip(masses, concentrations))
+    for m, c in zip(masses, concentrations):
+        print(sum(m))
+    weighted_masses = [sum(m) * c for m, c in zip(masses, concentrations)]
+    max_idx = weighted_masses.index(max(weighted_masses))
+    m_max = sum(masses[max_idx])
+    c_max = concentrations[max_idx]
+    print(weighted_masses)
+    print(weighted_masses[max_idx])
+    
+    num_molecules = [0] * len(components)
+
+    iteration = 0
+    while iteration < max_iter:
+        if n_max > n_max_limit: 
+            print(f"n_max exceeds limit, {n_max}!")
+            break 
+            
+        num_molecules[max_idx] = [n_max] * len(components[max_idx])
+
+        for i, (mass, conc) in enumerate(zip(masses, concentrations)):
+            if i == max_idx or mass == 0:
+                continue
+            if conc == 0.0:
+                num_molecules[i] = 0
+            # so long as max n and m are bounded, (n1*m1)/(n2*m2) = c1/c2
+            m_i = sum(mass)
+            n_i = int((1/m_i) * n_max * m_max * (conc/c_max))
+            if iteration % 20 == 0:
+                print(mass, conc)
+                print(f"m_i = {m_i}")
+                print(f"n_max = {n_max}")
+                print(f"c_max = {c_max}")
+                print(f"m_max = {m_max}")
+                print(n_i)
+            num_molecules[i] = [n_i] * len(components[i])
+        # Compute current mole fractions
+        total_mass = sum(sum(n) * sum(m) for n, m in zip(num_molecules, masses) if isinstance(n, list))
+        current_wt_percents = [(sum(n) * sum(m)) / total_mass for n, m in zip(num_molecules, masses) if isinstance(n, list)]
+        print(f"total_mass = {total_mass}") 
+        # Compute residual error
+        residuals = [current - target for current, target in zip(current_wt_percents, concentrations)]
+        max_residual = max(abs(res) for res in residuals)
+
+        if iteration % 20 == 0: 
+            print(f"Iteration {iteration}, n_max = {n_max}, Current wt% = {current_wt_percents}, Max Residual = {max_residual}")
+
+        # Check for convergence
+        if max_residual < 1e-5:
+            break
+
+        # Compute numerical derivative (approximate Jacobian)
+        delta = 1e-2 * n_max
+        num_molecules[max_idx] = [(n_max + delta)] * len(components[max_idx])
+
+        perturbed_total_mass = sum(sum(n) * sum(m) for n, m in zip(num_molecules, masses) if isinstance(n, list))
+        perturbed_wt_percents = [sum(n) * sum(m) / perturbed_total_mass for n, m in zip(num_molecules, masses) if isinstance(n, list)]
+        derivative = [(perturbed - current) / delta for perturbed, current in zip(perturbed_wt_percents, current_wt_percents)]
+
+        # Newton-Raphson update
+        step = -np.dot(residuals, derivative) / sum(d**2 for d in derivative)
+        n_max = max(1, int(n_max + step))  # Ensure n_max is positive
+         
+        if iteration % 20 == 0:
+            print(f"iteration: {iteration}")
+            print(f"new n_max = {n_max}")
+            print(f"current_wt_percents = {current_wt_percents}")
+        iteration += 1
+
+    print("%%%%% MASS AND NUMBER %%%%%")
+    for comp, c, m, n in zip(components, concentrations, masses, num_molecules):
+        print(f"{comp} ({m}, {c}): {n} molecules")
+        print(f"current_wt_percents = {current_wt_percents}")
+    
+    print(components, molecules, num_molecules)
+    
+    # avoid packmol error  ERROR: Number of molecules of type 1  set to less than 1
+    for i, num_molecule in enumerate(num_molecules):
+        if num_molecule == 0.0:
+            comps[i] = None
+            molecules[i] = None
+            num_molecules[i] = None
+    
+    components_final = [comp for comp in components if comp is not None]
+    molecules_final = [molecule for molecule in molecules if molecule is not None]
+    num_molecules_final = [num_molecule for num_molecule in num_molecules if num_molecule is not None]
+    
+    # Flatten the nested lists
+    comps_flat = [comp for comp_group in components_final for comp in comp_group]
+    molecules_flat = [mol for mol_group in molecules_final for mol in mol_group]
+    num_molecules_flat = []
+    for i, group in enumerate(components_final):
+        num_molecules_flat.extend([num_molecules_final[i][0]] * len(group))
+    
+    return comps_flat, molecules_flat, num_molecules_flat
 
 def get_num_molecules(comp1, comp2, conc, map):
     
@@ -254,9 +371,14 @@ def main():
     jobdir_status = []
     for mixture in conditions["mixtures"]:
         name = mixture["name"]
-        comp1 = mixture["component1"]
-        comp2 = mixture["component2"]
-        mols = comp1 + comp2
+        components = []
+        for key in sorted(mixture.keys()):
+            if key.startswith("component") and key[9:].isdigit():
+                components.append(mixture[key])
+        if not components:
+            raise ValueError(f"No components found in mixture '{mixture['name']}'. Keys should be 'component1', 'component2', etc.")
+        mols = list(chain.from_iterable(components))
+        print(mols, components) 
         xmls = []
         pdbs = []
         for mol in mols:
@@ -286,10 +408,14 @@ def main():
             os.makedirs(name_dir)
             root_ffdir = shutil.copytree('ffdir', name_ffdir)
             print(f"created {root_ffdir}")
-
+        
         for conc in mixture["concentrations"]:
             for temp in mixture["temperatures"]:
-                dir = os.path.join(os.getcwd(), str(name), str(conc), str(temp))
+                if isinstance(conc, (int, float)):
+                    dir = os.path.join(os.getcwd(), str(name), str(conc), str(temp))
+                else:
+                    dir = os.path.join(os.getcwd(), str(name), str(conc[0]), str(temp))
+                    
                 jobdir_list.append(dir)
                 if os.path.exists(dir):
                     try:
@@ -307,9 +433,23 @@ def main():
                     print(f"Directory {dir} created")
 
                 # run openff system.pdb generator
-                comps, molecules, num_molecules = get_num_molecules(comp1, comp2, conc, molecule_map)
+                if len(components) == 2:
+                    if not isinstance(conc, (int, float)):
+                        raise ValueError(f"2-component systems must have single concentration value for comp1, but got {conc}.")
+                    comps, molecules, num_molecules = get_num_molecules(components[0], components[1], conc, molecule_map)
+                elif len(components) >= 3:
+                    if len(conc) != len(components):
+                        raise ValueError(f"Number of concentrations ({len(conc)}) must match number of components ({len(components)})")
+                    if abs(sum(conc) - 1.0) > 1e-10:
+                        raise ValueError(f"Concentrations must sum to 1.0, got {sum(conc)}")
+                    comps, molecules, num_molecules = get_num_molecules_multi(components, conc, molecule_map) 
+                
+                print(f"comps: {comps}") 
+                print(f"molecules: {molecules}")
+                print(f"num_molecules: {num_molecules}")
                 pdbs = [molecule_map[comp]["MOL"]+".pdb" for comp in comps]
                 print(pdbs, comps, molecules, num_molecules)
+                
                 system_pdb = packmol.pack_box(pdbs, num_molecules)
                 system_pdb_path = os.path.join(dir, 'system.pdb')
                 system_pdb.save_pdb(system_pdb_path)
@@ -317,7 +457,10 @@ def main():
                 print(f"Created system.pdb in {system_pdb_path}.")
                 # copy system.pdb to dir
                 
-                slurm_job_name = f"{name}_{conc}_{temp}"
+                if isinstance(conc, (int, float)):
+                    slurm_job_name = f"{name}_{conc}_{temp}"
+                else:
+                    slurm_job_name = f"{name}_{conc[0]}_{temp}"
                 all_xml = [os.path.join(name_dir, xml) for xml in all_xml] 
                 
                 create_job(system_pdb_path, temp, all_xml, dir, slurm_job_name)
