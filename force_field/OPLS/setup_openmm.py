@@ -115,7 +115,7 @@ def molar_mass(mol):
         mass += atom.mass
     return mass
 
-def get_num_molecules_multi(components, concentrations, map, n_max = 200, max_iter = 100, n_max_limit=500):
+def get_num_molecules_multi(components, concentrations, map, n_max = 200):
     
     if abs(sum(concentrations) - 1.0) > 1e-10:
         raise ValueError(f"Concentrations must sum to 1.0, got {sum(concentrations)}")
@@ -133,82 +133,32 @@ def get_num_molecules_multi(components, concentrations, map, n_max = 200, max_it
         molecules.append(molecule)
         masses.append(mass) 
     
-    print(masses, concentrations, components)
-    print(zip(masses, concentrations))
-    for m, c in zip(masses, concentrations):
-        print(sum(m))
     weighted_masses = [sum(m) * c for m, c in zip(masses, concentrations)]
     max_idx = weighted_masses.index(max(weighted_masses))
+    
     m_max = sum(masses[max_idx])
     c_max = concentrations[max_idx]
-    print(weighted_masses)
-    print(weighted_masses[max_idx])
     
     num_molecules = [0] * len(components)
+    num_molecules[max_idx] = [n_max] * len(components[max_idx])
 
-    iteration = 0
-    while iteration < max_iter:
-        if n_max > n_max_limit: 
-            print(f"n_max exceeds limit, {n_max}!")
-            break 
-            
-        num_molecules[max_idx] = [n_max] * len(components[max_idx])
-
-        for i, (mass, conc) in enumerate(zip(masses, concentrations)):
-            if i == max_idx or mass == 0:
-                continue
-            if conc == 0.0:
-                num_molecules[i] = 0
-            # so long as max n and m are bounded, (n1*m1)/(n2*m2) = c1/c2
-            m_i = sum(mass)
-            n_i = int((1/m_i) * n_max * m_max * (conc/c_max))
-            if iteration % 20 == 0:
-                print(mass, conc)
-                print(f"m_i = {m_i}")
-                print(f"n_max = {n_max}")
-                print(f"c_max = {c_max}")
-                print(f"m_max = {m_max}")
-                print(n_i)
-            num_molecules[i] = [n_i] * len(components[i])
-        # Compute current mole fractions
-        total_mass = sum(sum(n) * sum(m) for n, m in zip(num_molecules, masses) if isinstance(n, list))
-        current_wt_percents = [(sum(n) * sum(m)) / total_mass for n, m in zip(num_molecules, masses) if isinstance(n, list)]
-        print(f"total_mass = {total_mass}") 
-        # Compute residual error
-        residuals = [current - target for current, target in zip(current_wt_percents, concentrations)]
-        max_residual = max(abs(res) for res in residuals)
-
-        if iteration % 20 == 0: 
-            print(f"Iteration {iteration}, n_max = {n_max}, Current wt% = {current_wt_percents}, Max Residual = {max_residual}")
-
-        # Check for convergence
-        if max_residual < 1e-5:
-            break
-
-        # Compute numerical derivative (approximate Jacobian)
-        delta = 1e-2 * n_max
-        num_molecules[max_idx] = [(n_max + delta)] * len(components[max_idx])
-
-        perturbed_total_mass = sum(sum(n) * sum(m) for n, m in zip(num_molecules, masses) if isinstance(n, list))
-        perturbed_wt_percents = [sum(n) * sum(m) / perturbed_total_mass for n, m in zip(num_molecules, masses) if isinstance(n, list)]
-        derivative = [(perturbed - current) / delta for perturbed, current in zip(perturbed_wt_percents, current_wt_percents)]
-
-        # Newton-Raphson update
-        step = -np.dot(residuals, derivative) / sum(d**2 for d in derivative)
-        n_max = max(1, int(n_max + step))  # Ensure n_max is positive
-         
-        if iteration % 20 == 0:
-            print(f"iteration: {iteration}")
-            print(f"new n_max = {n_max}")
-            print(f"current_wt_percents = {current_wt_percents}")
-        iteration += 1
+    for i, (mass, conc) in enumerate(zip(masses, concentrations)):
+        if i == max_idx or mass == 0:
+            continue
+        if conc == 0.0:
+            num_molecules[i] = 0
+        # so long as max n and m are bounded, (n1*m1)/(n2*m2) = c1/c2
+        m_i = sum(mass)
+        n_i = round((1/m_i) * n_max * m_max * (conc/c_max))
+        num_molecules[i] = [n_i] * len(components[i])
+    # Compute current mole fractions
+    total_mass = sum(sum(n) * sum(m) for n, m in zip(num_molecules, masses) if isinstance(n, list))
+    current_wt_percents = [(sum(n) * sum(m)) / total_mass for n, m in zip(num_molecules, masses) if isinstance(n, list)]
 
     print("%%%%% MASS AND NUMBER %%%%%")
-    for comp, c, m, n in zip(components, concentrations, masses, num_molecules):
+    for i, (comp, c, m, n) in enumerate(zip(components, concentrations, masses, num_molecules)):
         print(f"{comp} ({m}, {c}): {n} molecules")
-        print(f"current_wt_percents = {current_wt_percents}")
-    
-    print(components, molecules, num_molecules)
+        print(f"current_wt_percents = {current_wt_percents[i]}")
     
     # avoid packmol error  ERROR: Number of molecules of type 1  set to less than 1
     for i, num_molecule in enumerate(num_molecules):
@@ -247,14 +197,14 @@ def get_num_molecules(comp1, comp2, conc, map):
             n2 = 200
         else:
             n1 = 200
-            n2 = int((1 / sum(mass2)) * (n1*sum(mass1) / conc - n1*sum(mass1)))
+            n2 = round((1 / sum(mass2)) * (n1*sum(mass1) / conc - n1*sum(mass1)))
     elif sum(mass2) > sum(mass1):
         if (1-conc) == 0.0:
             n2 = 0
             n1 = 200
         else:
             n2 = 200
-            n1 = int((1 / sum(mass1)) * ((n2*sum(mass2)) / (1-conc) - n2*sum(mass2)) )
+            n1 = round((1 / sum(mass1)) * ((n2*sum(mass2)) / (1-conc) - n2*sum(mass2)) )
     print("%%%%% MASS AND NUMBER %%%%%")
     print(mass1, mass2, n1, n2)
     
