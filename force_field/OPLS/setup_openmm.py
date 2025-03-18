@@ -115,7 +115,7 @@ def molar_mass(mol):
         mass += atom.mass
     return mass
 
-def get_num_molecules_multi(components, concentrations, map, n_max = 200):
+def get_num_molecules_multi(components, concentrations, map, n_max = 200, dir=None):
     
     if abs(sum(concentrations) - 1.0) > 1e-10:
         raise ValueError(f"Concentrations must sum to 1.0, got {sum(concentrations)}")
@@ -136,6 +136,9 @@ def get_num_molecules_multi(components, concentrations, map, n_max = 200):
     weighted_masses = [sum(m) * c for m, c in zip(masses, concentrations)]
     max_idx = weighted_masses.index(max(weighted_masses))
     
+    # define a "free index" that gets solved based on total mass 
+    free_idx = min(range(len(masses)), key=lambda i: sum(masses[i]))
+ 
     m_max = sum(masses[max_idx])
     c_max = concentrations[max_idx]
     
@@ -143,27 +146,43 @@ def get_num_molecules_multi(components, concentrations, map, n_max = 200):
     num_molecules[max_idx] = [n_max] * len(components[max_idx])
 
     for i, (mass, conc) in enumerate(zip(masses, concentrations)):
-        if i == max_idx or mass == 0:
+        if i == max_idx or mass == 0 or i == free_idx:
             continue
         if conc == 0.0:
             num_molecules[i] = 0
         # so long as max n and m are bounded, (n1*m1)/(n2*m2) = c1/c2
         m_i = sum(mass)
-        n_i = round((1/m_i) * n_max * m_max * (conc/c_max))
+        n_i = int(round((1/m_i) * n_max * m_max * (conc/c_max)))
         num_molecules[i] = [n_i] * len(components[i])
+    
+    # resolve "free" component
+    m_tot = sum(
+        sum(n_i * m_i for n_i, m_i in zip(n_list, m_list)) if isinstance(n_list, list) else n_list * sum(m_list)
+        for n_list, m_list in zip(num_molecules, masses)
+    )
+    m_free = sum(masses[free_idx])
+    mass_free_needed = (concentrations[free_idx] / (1 - concentrations[free_idx])) * m_tot
+    n_free = int(round(mass_free_needed / m_free))
+    num_molecules[free_idx] = [n_free] * len(components[free_idx])
+
     # Compute current mole fractions
-    total_mass = sum(sum(n) * sum(m) for n, m in zip(num_molecules, masses) if isinstance(n, list))
+    total_mass = sum(
+        sum(n_i * m_i for n_i, m_i in zip(n_list, m_list)) if isinstance(n_list, list) else n_list * sum(m_list)
+        for n_list, m_list in zip(num_molecules, masses)
+    )
     current_wt_percents = [(sum(n) * sum(m)) / total_mass for n, m in zip(num_molecules, masses) if isinstance(n, list)]
 
-    print("%%%%% MASS AND NUMBER %%%%%")
-    for i, (comp, c, m, n) in enumerate(zip(components, concentrations, masses, num_molecules)):
-        print(f"{comp} ({m}, {c}): {n} molecules")
-        print(f"current_wt_percents = {current_wt_percents[i]}")
+    if dir: 
+        with open(os.path.join(dir, "README"), "w") as readme:
+            readme.write("%%%%% MASS AND NUMBER %%%%%\n")
+            for i, (comp, c, m, n) in enumerate(zip(components, concentrations, masses, num_molecules)):
+                readme.write(f"{comp} ({m}, {c}): {n} molecules.\n")
+                readme.write(f"current_wt_percents = {current_wt_percents[i]}.\n")
     
     # avoid packmol error  ERROR: Number of molecules of type 1  set to less than 1
     for i, num_molecule in enumerate(num_molecules):
-        if num_molecule == 0.0:
-            comps[i] = None
+        if num_molecule == 0 or num_molecule == [0] or num_molecule == [0,0]:
+            components[i] = None
             molecules[i] = None
             num_molecules[i] = None
     
@@ -197,14 +216,14 @@ def get_num_molecules(comp1, comp2, conc, map):
             n2 = 200
         else:
             n1 = 200
-            n2 = round((1 / sum(mass2)) * (n1*sum(mass1) / conc - n1*sum(mass1)))
+            n2 = int((1 / sum(mass2)) * (n1*sum(mass1) / conc - n1*sum(mass1)))
     elif sum(mass2) > sum(mass1):
         if (1-conc) == 0.0:
             n2 = 0
             n1 = 200
         else:
             n2 = 200
-            n1 = round((1 / sum(mass1)) * ((n2*sum(mass2)) / (1-conc) - n2*sum(mass2)) )
+            n1 = int((1 / sum(mass1)) * ((n2*sum(mass2)) / (1-conc) - n2*sum(mass2)) )
     print("%%%%% MASS AND NUMBER %%%%%")
     print(mass1, mass2, n1, n2)
     
@@ -392,13 +411,9 @@ def main():
                         raise ValueError(f"Number of concentrations ({len(conc)}) must match number of components ({len(components)})")
                     if abs(sum(conc) - 1.0) > 1e-10:
                         raise ValueError(f"Concentrations must sum to 1.0, got {sum(conc)}")
-                    comps, molecules, num_molecules = get_num_molecules_multi(components, conc, molecule_map) 
+                    comps, molecules, num_molecules = get_num_molecules_multi(components, conc, molecule_map, dir=dir) 
                 
-                print(f"comps: {comps}") 
-                print(f"molecules: {molecules}")
-                print(f"num_molecules: {num_molecules}")
                 pdbs = [molecule_map[comp]["MOL"]+".pdb" for comp in comps]
-                print(pdbs, comps, molecules, num_molecules)
                 
                 system_pdb = packmol.pack_box(pdbs, num_molecules)
                 system_pdb_path = os.path.join(dir, 'system.pdb')
