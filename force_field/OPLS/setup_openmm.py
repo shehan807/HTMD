@@ -125,7 +125,7 @@ def get_num_molecules_multi(components, concentrations, map, n_max = 200, dir=No
     
     molecules = [] 
     masses = []
-
+    print(components)
     for comp in components:
         molecule = [Molecule.from_smiles(map[sub_comp]["SMILES"], allow_undefined_stereo=True) for sub_comp in comp]
         mass = [molar_mass(Molecule) for Molecule in molecule]
@@ -160,17 +160,34 @@ def get_num_molecules_multi(components, concentrations, map, n_max = 200, dir=No
         sum(n_i * m_i for n_i, m_i in zip(n_list, m_list)) if isinstance(n_list, list) else n_list * sum(m_list)
         for n_list, m_list in zip(num_molecules, masses)
     )
+    print(m_tot)
     m_free = sum(masses[free_idx])
     mass_free_needed = (concentrations[free_idx] / (1 - concentrations[free_idx])) * m_tot
     n_free = int(round(mass_free_needed / m_free))
     num_molecules[free_idx] = [n_free] * len(components[free_idx])
 
     # Compute current mole fractions
-    total_mass = sum(
-        sum(n_i * m_i for n_i, m_i in zip(n_list, m_list)) if isinstance(n_list, list) else n_list * sum(m_list)
-        for n_list, m_list in zip(num_molecules, masses)
-    )
-    current_wt_percents = [(sum(n) * sum(m)) / total_mass for n, m in zip(num_molecules, masses) if isinstance(n, list)]
+    total_mass = 0
+    for n_i, m_i in zip(num_molecules, masses):
+        print(n_i, m_i)
+        m_tot_i = np.array(n_i) * np.array([q.m_as(unit.dalton) for q in m_i])
+        print(m_tot_i)
+        if m_tot_i.ndim == 1:
+            total_mass += np.sum(m_tot_i)
+        elif np.isscalar(m_tot_i):
+            total_mass += float(m_tot_i)
+    total_mass = float(total_mass)
+    print(total_mass)
+    current_wt_percents = []
+    for n_i, m_i in zip(num_molecules, masses):
+        print(n_i, m_i)
+        m_tot_i = np.array(n_i) * np.array([q.m_as(unit.dalton) for q in m_i])
+        if m_tot_i.ndim == 1:
+            m_tot_i = float(np.sum(m_tot_i))
+        elif np.isscalar(m_tot_i):
+            m_tot_i = float(m_tot_i)
+        current_wt_percents.append( m_tot_i / total_mass )
+    print(current_wt_percents) 
 
     if dir: 
         with open(os.path.join(dir, "README"), "w") as readme:
@@ -180,13 +197,14 @@ def get_num_molecules_multi(components, concentrations, map, n_max = 200, dir=No
                 readme.write(f"current_wt_percents = {current_wt_percents[i]}.\n")
     
     # avoid packmol error  ERROR: Number of molecules of type 1  set to less than 1
+    components_tmp = components
     for i, num_molecule in enumerate(num_molecules):
         if num_molecule == 0 or num_molecule == [0] or num_molecule == [0,0]:
-            components[i] = None
+            components_tmp[i] = None
             molecules[i] = None
             num_molecules[i] = None
     
-    components_final = [comp for comp in components if comp is not None]
+    components_final = [comp for comp in components_tmp if comp is not None]
     molecules_final = [molecule for molecule in molecules if molecule is not None]
     num_molecules_final = [num_molecule for num_molecule in num_molecules if num_molecule is not None]
     
@@ -380,10 +398,16 @@ def main():
         
         for conc in mixture["concentrations"]:
             for temp in mixture["temperatures"]:
+                components = []
+                for key in sorted(mixture.keys()):
+                    if key.startswith("component") and key[9:].isdigit():
+                        components.append(mixture[key])
+                
                 if isinstance(conc, (int, float)):
                     dir = os.path.join(os.getcwd(), str(name), str(conc), str(temp))
                 else:
-                    dir = os.path.join(os.getcwd(), str(name), str(conc[0]), str(temp))
+                    r = float(conc[-1]) / float(conc[-2])
+                    dir = os.path.join(os.getcwd(), str(name), str(conc[0]), str(f"{r:.2f}"), str(temp))
                     
                 jobdir_list.append(dir)
                 if os.path.exists(dir):
@@ -411,6 +435,7 @@ def main():
                         raise ValueError(f"Number of concentrations ({len(conc)}) must match number of components ({len(components)})")
                     if abs(sum(conc) - 1.0) > 1e-10:
                         raise ValueError(f"Concentrations must sum to 1.0, got {sum(conc)}")
+                    print(conc, temp, components)
                     comps, molecules, num_molecules = get_num_molecules_multi(components, conc, molecule_map, dir=dir) 
                 
                 pdbs = [molecule_map[comp]["MOL"]+".pdb" for comp in comps]

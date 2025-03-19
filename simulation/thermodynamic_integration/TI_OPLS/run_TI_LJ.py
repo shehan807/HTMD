@@ -157,7 +157,7 @@ print(f"n_equil: {n_equil}, n_deriv: {n_deriv}, n_step: {n_step}")
 
 #******************* Change this for CUDA/OpenCl/CPU kernels ******************
 platform = Platform.getPlatformByName('CUDA')
-properties = {'Precision': 'mixed', 'DeviceIndex':'0'}
+properties = {'Precision': 'mixed'}
 # this is platform used for simulation object that computes numerical derivative
 platform_dx = Platform.getPlatformByName('CUDA')
 #**********************************************************************************

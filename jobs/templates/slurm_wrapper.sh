@@ -12,7 +12,7 @@ echo "pwd:"; pwd
 echo "run.slurm #${ITER} submitted"
 
 START=$ITER+1
-END=4
+END=10
 for (( ITER=$START; ITER<=$END; ITER++ ))
 do
 	echo "run.slurm #${ITER} submitted"
