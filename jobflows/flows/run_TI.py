@@ -32,7 +32,6 @@ def main():
             RES_FILE=row["resfiles"],
             FF_FILE=row["ff_files"],
             base_dir=row["dir"],
-            device_platform="CPU"
         )
         break 
 if __name__ == "__main__":
