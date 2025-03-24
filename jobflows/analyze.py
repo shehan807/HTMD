@@ -115,7 +115,7 @@ def get_TI_params(input_df):
         input_df = pd.DataFrame(input_df) 
     
     ps_2_fs = 1e3
-    target_time = ps_2_fs * input_df["target_time"][0] # ps 
+    target_time = ps_2_fs * input_df["target_time"].iloc[0] # ps 
 
     # Generate possible combinations for n_deriv and n_step
     candidates = []
@@ -133,10 +133,30 @@ def get_TI_params(input_df):
     
     return input_df
 
+@job
+def get_resIDs(input_df, resname="HOH", randn=100):
 
+    if isinstance(input_df, dict):
+        input_df = pd.DataFrame(input_df) 
+    
+    pdb = _get_data_path(input_df, input_df["pdbfile"].iloc[0], subdir="simulation_output")
 
+    u = Universe(pdb)
+    if len(set(u.residues.resids)) != len(u.residues.resids):
+        print("Rewriting PDB to have correct resids.")
+        for i, res in enumerate(u.residues, start=1):
+            res.resid = i
+        u.atoms.write(pdb)
+    
+    residues = u.select_atoms(f"resname {resname}").residues
+    resids = [res.resid for res in residues]
+    n_residues = len(resids)
+    print(f"{n_residues} {resname} residues found in {pdb}")
 
+    randn = min(randn, n_residues)
+    resids = np.array(resids)
+    SLT_IDs = resids[np.random.choice(n_residues, size=randn, replace=False)]
+    input_df["SLT_IDs"] = [SLT_IDs]
 
-
-
+    return input_df
 

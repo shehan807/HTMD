@@ -1,7 +1,7 @@
-from simtk.openmm.app import *
-from simtk.openmm import *
-import simtk.openmm as mm
-from simtk.unit import *
+from openmm.app import *
+from openmm import *
+import openmm as mm
+from openmm.unit import *
 from sys import stdout
 import subprocess
 import logging
@@ -248,7 +248,7 @@ def simulation_scale_electrostatic( simulation_object, scalefactor ):
 class TI(object):
     def __init__(self, solutename, soluteID, atomshells, system, modeller, forcefield, integrator, platform, properties, use_SCF_lambda_pol, interaction_type, NPT_simulation):
           self.solutename = solutename
-          self.soluteID = soluteID
+          self.soluteID = int(soluteID)
           self.atomshells = atomshells
           self.system = system
           self.modeller = modeller
