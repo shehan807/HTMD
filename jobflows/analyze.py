@@ -1,5 +1,6 @@
 from MDAnalysis import Universe
 from MDAnalysis.analysis.msd import EinsteinMSD
+import MDAnalysis.analysis.rdf as rdf
 from MDAnalysis import transformations as trans
 from MDAnalysis.units import get_conversion_factor
 from openmm.unit import picoseconds, AVOGADRO_CONSTANT_NA  
@@ -10,9 +11,30 @@ from openmm import unit
 import os
 import numpy as np
 import pandas as pd 
+import matplotlib.pyplot as plt
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 from visualize import plot_msd 
+from scipy.signal import savgol_filter
+import numpy as np
+
+def _smooth_rdf(r, gr, window_length=11, polyorder=3):
+    """
+    Smooth the RDF (g(r)) using Savitzky-Golay filter.
+
+    Parameters:
+        r (array-like): Radius values
+        gr (array-like): g(r) values
+        window_length (int): Length of the filter window (must be odd and <= len(gr))
+        polyorder (int): Polynomial order to fit (must be less than window_length)
+
+    Returns:
+        r, gr_smooth: Same r, smoothed g(r)
+    """
+    if len(gr) < window_length:
+        window_length = len(gr) if len(gr) % 2 == 1 else len(gr) - 1  # ensure odd
+    gr_smooth = savgol_filter(gr, window_length=window_length, polyorder=polyorder)
+    return np.array(r), gr_smooth
 
 def _get_timescale(msd_values, lagtimes, target_delta_r):
     
@@ -39,7 +61,7 @@ def _get_data_path(input_df, filename, subdir="simulation_output"):
         filename
     )
 
-@job
+#@job
 def get_rho(input_df, eq=0.7):
    
     if isinstance(input_df, dict):
@@ -64,8 +86,59 @@ def get_rho(input_df, eq=0.7):
     
     rho_avg = np.mean(rho_vals)
     rho_std = np.std(rho_vals)
+    print(f"rho = {rho_avg:.3f} +/- {rho_std:.2f}")
     input_df["rho_avg"] = rho_avg
     input_df["rho_std"] = rho_std 
+    return input_df
+
+#@job
+def get_rdf(input_df, selections=None, framestart=1):
+    """Compute rdf based on dictionary of selections, e.g., 
+
+    selections = {\
+                'O-H': ['(name O06 or name O07 or name O08)','(name P04)'],\
+             }
+    where "O-H" is the rdf_name.
+
+    """   
+    if isinstance(input_df, dict):
+        input_df = pd.DataFrame(input_df) 
+    
+    pdb = _get_data_path(input_df, input_df["pdbfile"].iloc[0], subdir="simulation_output")
+    dcd = _get_data_path(input_df, input_df["dcdfile"].iloc[0], subdir="simulation_output")
+    
+    u = Universe(pdb, dcd)
+    
+    for rdf_name in selections:
+        group1 = u.select_atoms(selections[rdf_name][0])
+        group2 = u.select_atoms(selections[rdf_name][1])
+        
+        print(f"Calculating {rdf_name} RDF")
+        gr = rdf.InterRDF( group1 , group2 , nbins=400, range=(0.0,20.0), start=framestart , exclude_same="residue")
+        gr.run()
+         
+        #write_data(rdf_name+"-rdf.csv", gr.results.bins, gr.results.rdf)
+    
+        #fig, ax = plt.subplots()
+        #ax.plot(gr.results.bins, gr.results.rdf)
+        #plt.savefig(rdf_name + '-rdf.png')
+    #input_df["r"] = gr.results.bins
+    #input_df[f"g_{rdf_name}(r)"] = gr.results.rdf
+    _r, _rdf = _smooth_rdf(gr.results.bins, gr.results.rdf)
+
+    return _r, _rdf
+
+@job
+def get_Nr(input_df):
+   
+    if isinstance(input_df, dict):
+        input_df = pd.DataFrame(input_df) 
+    
+    pdb = _get_data_path(input_df, input_df["pdbfile"].iloc[0], subdir="simulation_output")
+    dcd = _get_data_path(input_df, input_df["dcdfile"].iloc[0], subdir="simulation_output")
+    
+    input_df["r"] = r
+    input_df["g(r)"] = rdf
     return input_df
 
 @job

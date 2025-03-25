@@ -19,20 +19,17 @@ def main():
     
     df = pd.read_csv(args.csv_file, dtype=str)
 
-    for _, row in df.iterrows():
-        print(row)
-        run_TI(
-            n_deriv=row["n_deriv"],
-            n_step=row["n_step"],
-            SYSTEM=row["system"], 
-            CONC=row["conc"],
-            TEMP=row["temp"],
-            SLT_ID=row["SLT_IDs"], 
-            PDB_FILE=row["pdbfile"],
-            RES_FILE=row["resfiles"],
-            FF_FILE=row["ff_files"],
-            base_dir=row["dir"],
-        )
-        break 
+    run_TI(
+        n_deriv=row["n_deriv"],
+        n_step=row["n_step"],
+        SYSTEM=row["system"], 
+        CONC=row["conc"],
+        TEMP=row["temp"],
+        SLT_ID=row["SLT_IDs"], 
+        PDB_FILE=row["pdbfile"],
+        RES_FILE=row["resfiles"],
+        FF_FILE=row["ff_files"],
+        base_dir=row["dir"],
+    )
 if __name__ == "__main__":
     main()

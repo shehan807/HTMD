@@ -5,7 +5,7 @@ import pandas as pd
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-@job
+#@job
 def input_df(system, conc, temp, dir, pdbfile, dcdfile, resfiles, ff_files, **kwargs):
     data = {
         'system': [system],
